@@ -1,0 +1,6 @@
+redis
+supabase
+yt-dlp
+faster-whisper
+requests
+python-dotenv
