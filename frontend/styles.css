@@ -1,0 +1,113 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --accent-pink: #ff90e8;
+    --accent-yellow: #ffc900;
+    --border: 2px solid #000000;
+    --shadow: 4px 4px 0px #000000;
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    padding: 2rem;
+}
+
+/* Layout */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+h1 {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Components */
+.card {
+    background-color: #fff;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 2rem;
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--accent-yellow);
+    color: var(--text-color);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 1rem 2rem;
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.1s ease;
+}
+
+.btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000;
+}
+
+.btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+.btn-primary {
+    background-color: var(--accent-pink);
+}
+
+.input {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    font-family: var(--font-main);
+    font-size: 1rem;
+    border: var(--border);
+    box-shadow: var(--shadow);
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.input:focus {
+    background-color: #fefefe;
+}
+
+/* Utility */
+.flex-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.mt-4 { margin-top: 1rem; }
+.mb-4 { margin-bottom: 1rem; }

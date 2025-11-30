@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Downloads | Video To Text</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <main class="container">
+        <!-- Header -->
+        <header class="text-center mb-4">
+            <h1 data-i18n="downloads_title">Your Downloads</h1>
+            <p data-i18n="downloads_subtitle">Processing your videos. This page updates automatically.</p>
+        </header>
+
+        <!-- Status List -->
+        <section class="card">
+            <div id="status-list">
+                <!-- Items injected by app.js -->
+                <p class="text-center" style="opacity: 0.6;" data-i18n="downloads_loading">Loading status...</p>
+            </div>
+        </section>
+
+        <!-- Actions -->
+        <div class="text-center mt-4">
+            <a href="index.html" class="btn" data-i18n="btn_new_order">Start New Order</a>
+        </div>
+    </main>
+
+    <script src="app.js"></script>
+</body>
+</html>
