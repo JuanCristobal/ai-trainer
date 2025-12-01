@@ -4,6 +4,6 @@ redis==5.0.1
 stripe==7.6.0
 supabase==2.0.3
 python-multipart==0.0.6
-httpx==0.25.1
-yt-dlp==2023.11.16
+httpx==0.24.1
+yt-dlp>=2024.11.04
 python-dotenv==1.0.0

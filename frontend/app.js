@@ -3,7 +3,7 @@
  * Handles Localization, Cart Logic, and Job Polling.
  */
 
-const API_BASE = 'http://localhost:8000';
+const API_BASE = 'http://localhost:8000/api';
 
 // --- Localization Configuration ---
 const TRANSLATIONS = {
@@ -169,7 +169,7 @@ async function addToCart(url) {
         // but ideally backend returns: { title: "...", duration: 120, price: 0.50 }
         
         // Note: In a real scenario, we should handle errors gracefully.
-        state.cart.push(data); 
+        state.cart.push(data.item); 
         
         renderCart();
         input.value = '';
