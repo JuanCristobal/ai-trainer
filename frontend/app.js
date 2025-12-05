@@ -1,6 +1,6 @@
 /**
  * Video To Text - Frontend Application
- * Handles Localization, Cart Logic, and Job Polling.
+ * Handles Localization, Cart Logic, Preview, and Job Polling.
  */
 
 const API_BASE = 'http://localhost:8000/api';
@@ -18,6 +18,7 @@ const TRANSLATIONS = {
         fee_duration: "Duration Fee",
         total: "Total",
         btn_checkout: "Pay with Stripe",
+        btn_preview: "Preview (30s)",
         downloads_title: "Your Downloads",
         downloads_subtitle: "Processing your videos. This page updates automatically.",
         downloads_loading: "Loading status...",
@@ -47,6 +48,7 @@ const TRANSLATIONS = {
         fee_duration: "Tarifa por Duración",
         total: "Total",
         btn_checkout: "Pagar con Stripe",
+        btn_preview: "Vista Previa (30s)",
         downloads_title: "Tus Descargas",
         downloads_subtitle: "Procesando tus videos. Esta página se actualiza sola.",
         downloads_loading: "Cargando estado...",
@@ -72,12 +74,14 @@ const state = {
     lang: 'en',
     sessionId: null,
     cart: [],
-    whimsicalIndex: 0
+    whimsicalIndex: 0,
+    previews: {} // Stores job_id -> { status, result }
 };
+
+const GEAR_ICON = `<svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 
 // --- Core Functions ---
 
-// 1. Initialization & Localization
 function init() {
     // Detect Language
     const userLang = navigator.language || navigator.userLanguage;
@@ -110,10 +114,14 @@ function init() {
     } else if (document.getElementById('status-list')) {
         initDownloadsPage();
     }
+    
+    // Start Whimsical Rotator globally
+    setInterval(rotateWhimsicalText, 2500);
 }
 
-// 2. Cart Page Logic
-function initCartPage() {
+// --- Cart Logic ---
+
+async function initCartPage() {
     const addBtn = document.getElementById('add-btn');
     const input = document.getElementById('url-input');
     const checkoutBtn = document.getElementById('checkout-btn');
@@ -124,6 +132,48 @@ function initCartPage() {
     });
 
     checkoutBtn.addEventListener('click', handleCheckout);
+
+    // Dev Pay Handler
+    const devBtn = document.getElementById('dev-pay-btn');
+    if (devBtn) {
+        devBtn.addEventListener('click', async () => {
+            if (state.cart.length === 0) return;
+            
+            devBtn.disabled = true;
+            devBtn.textContent = "...";
+            
+            try {
+                const res = await fetch(`${API_BASE}/dev/pay`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ session_id: state.sessionId })
+                });
+                
+                if (!res.ok) throw new Error("Dev pay failed");
+                
+                // Success: Redirect to downloads
+                window.location.href = "downloads.html";
+            } catch (e) {
+                alert("Dev Error: " + e.message);
+                devBtn.disabled = false;
+                devBtn.textContent = "⚡ Dev Pay";
+            }
+        });
+    }
+
+    // Initial Fetch
+    await fetchCart();
+}
+
+async function fetchCart() {
+    try {
+        const res = await fetch(`${API_BASE}/cart?session_id=${state.sessionId}`);
+        const data = await res.json();
+        state.cart = data.items || [];
+        renderCart();
+    } catch (e) {
+        console.error("Failed to fetch cart:", e);
+    }
 }
 
 async function addToCart(url) {
@@ -131,14 +181,11 @@ async function addToCart(url) {
     const input = document.getElementById('url-input');
 
     if (!url) return;
-
-    // Spam Protection
     if (state.cart.length >= 10) {
         alert(t.alert_cart_full);
         return;
     }
 
-    // Optimistic UI: Disable button
     const addBtn = document.getElementById('add-btn');
     const originalText = addBtn.textContent;
     addBtn.disabled = true;
@@ -157,21 +204,9 @@ async function addToCart(url) {
         if (!response.ok) throw new Error('Failed to add video');
 
         const data = await response.json();
-        // Assuming backend returns the full cart object or the new item
-        // For now, let's assume it returns the added item details + pricing
+        // Refresh cart from server to be safe
+        await fetchCart(); 
         
-        // Since we don't have a persistent GET /cart endpoint in the requirement,
-        // we rely on the response or just push to local state.
-        // Let's assume the backend returns the added item metadata.
-        // If not, we might need to refactor.
-        
-        // Mocking the push for now if response is just "OK", 
-        // but ideally backend returns: { title: "...", duration: 120, price: 0.50 }
-        
-        // Note: In a real scenario, we should handle errors gracefully.
-        state.cart.push(data.item); 
-        
-        renderCart();
         input.value = '';
         input.focus();
     } catch (err) {
@@ -181,6 +216,103 @@ async function addToCart(url) {
         addBtn.disabled = false;
         addBtn.textContent = originalText;
     }
+}
+
+async function requestPreview(url, btnElement, resultContainerId) {
+    const t = TRANSLATIONS[state.lang];
+    const resultDiv = document.getElementById(resultContainerId);
+
+    // 1. Check Cache
+    if (state.previews[url]) {
+        const cachedResult = state.previews[url];
+        renderPreviewResult(cachedResult, resultDiv, btnElement, url);
+        return;
+    }
+    
+    // 2. API Request
+    // Disable button
+    btnElement.disabled = true;
+    btnElement.textContent = "...";
+
+    try {
+        // Request Job
+        const res = await fetch(`${API_BASE}/preview`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                url: url,
+                session_id: state.sessionId
+            })
+        });
+
+        if (!res.ok) throw new Error("Preview request failed");
+        
+        const data = await res.json();
+        const jobId = data.job_id;
+        
+        // Start Polling
+        resultDiv.style.display = 'block';
+        resultDiv.innerHTML = `
+            <div style="color: var(--accent-pink); font-weight:bold;">
+                ${GEAR_ICON} <span id="whimsical-text-${jobId}" class="whimsical-target">${t.status_processing}...</span>
+            </div>
+        `;
+
+        pollPreviewJob(jobId, resultDiv, btnElement, url);
+
+    } catch (e) {
+        alert(t.alert_error + e.message);
+        btnElement.disabled = false;
+        btnElement.textContent = t.btn_preview;
+    }
+}
+
+function pollPreviewJob(jobId, container, btn, url) {
+    const t = TRANSLATIONS[state.lang];
+    
+    const interval = setInterval(async () => {
+        try {
+            const res = await fetch(`${API_BASE}/job/${jobId}`);
+            if (res.status === 404) return; 
+            
+            const job = await res.json();
+            
+            if (job.status === 'completed') {
+                clearInterval(interval);
+                // Save to Cache
+                state.previews[url] = job.result;
+                renderPreviewResult(job.result, container, btn, url);
+                
+            } else if (job.status === 'failed') {
+                clearInterval(interval);
+                container.innerHTML = `<small style="color:red;">${t.status_failed}: ${job.error}</small>`;
+                btn.disabled = false;
+                btn.textContent = t.btn_preview;
+            }
+        } catch (e) {
+            console.error("Polling error", e);
+        }
+    }, 2000);
+}
+
+function renderPreviewResult(text, container, btn, url) {
+    const t = TRANSLATIONS[state.lang];
+    
+    container.style.display = 'block';
+    container.innerHTML = `
+        <textarea readonly class="input" style="margin-top:1rem; height:300px; resize: vertical; background-color: #fff;">${text}</textarea>
+    `;
+    
+    // Update Button to "Done"
+    btn.textContent = "Done";
+    btn.disabled = false;
+    btn.onclick = (e) => {
+        e.stopPropagation();
+        container.style.display = 'none'; // Just hide
+        btn.textContent = t.btn_preview;  // Reset text
+        // Reset click handler to trigger cache check next time
+        btn.onclick = (ev) => window.handlePreviewClick(ev, btn, url, container.id);
+    };
 }
 
 function renderCart() {
@@ -201,18 +333,30 @@ function renderCart() {
     let total = 0;
 
     state.cart.forEach((item, index) => {
-        // Expecting item to have: title, duration, price (calculated by backend)
         const el = document.createElement('div');
-        el.className = 'card mb-4';
+        el.className = 'card mb-4'; // Removed modal click handler
         el.style.padding = '1rem';
+        
+        const resultId = `preview-result-${index}`;
+        
         el.innerHTML = `
             <div class="flex-row" style="justify-content: space-between;">
                 <div>
                     <strong>${index + 1}. ${item.title || 'Video'}</strong><br>
                     <small>${Math.round(item.duration || 0)}s</small>
                 </div>
-                <div>$${(item.price || 0).toFixed(2)}</div>
+                <div class="text-right">
+                    <div style="font-weight: bold;">$${(item.price || 0).toFixed(2)}</div>
+                    <div class="preview-wrapper">
+                        <button class="btn" style="margin-top: 0.5rem; background-color: #ffffff;" onclick="handlePreviewClick(event, this, '${item.url}', '${resultId}')">
+                            ${t.btn_preview}
+                        </button>
+                    </div>
+                </div>
             </div>
+            
+            <!-- Inline Result Area -->
+            <div id="${resultId}" style="display:none; margin-top: 1rem; border-top: 2px solid #000; padding-top: 1rem;"></div>
         `;
         list.appendChild(el);
         total += (item.price || 0);
@@ -220,6 +364,17 @@ function renderCart() {
 
     totalEl.textContent = `$${total.toFixed(2)}`;
 }
+
+// Global handler (Simplified, no propagation block needed for inline logic)
+window.handlePreviewClick = function(event, btn, url, resultId) {
+    // If button text is "Done", we should probably just collapse? 
+    // But the onclick replacement in pollPreviewJob handles that.
+    // This entry point is for "Start Preview".
+    requestPreview(url, btn, resultId);
+};
+
+/* Removed Modal Functions (openCardModal, closeModal) */
+
 
 async function handleCheckout() {
     const t = TRANSLATIONS[state.lang];
@@ -249,21 +404,18 @@ async function handleCheckout() {
     }
 }
 
-// 3. Downloads Page Logic
+// --- Downloads Logic ---
+
 function initDownloadsPage() {
-    // Start Polling
     pollJobs();
-    setInterval(pollJobs, 3000); // Check every 3s
-    
-    // Start Whimsical Rotator
-    setInterval(rotateWhimsicalText, 2500);
+    setInterval(pollJobs, 3000);
 }
 
 async function pollJobs() {
     try {
         const response = await fetch(`${API_BASE}/jobs?session_id=${state.sessionId}`);
-        const jobs = await response.json();
-        renderJobs(jobs);
+        const data = await response.json();
+        renderJobs(data.jobs || []);
     } catch (err) {
         console.error("Polling error:", err);
     }
@@ -278,7 +430,7 @@ function renderJobs(jobs) {
         return;
     }
 
-    list.innerHTML = ''; // Clear current list
+    list.innerHTML = ''; 
 
     jobs.forEach(job => {
         const card = document.createElement('div');
@@ -286,23 +438,24 @@ function renderJobs(jobs) {
         card.style.padding = '1rem';
         
         let statusHtml = '';
-        let statusClass = '';
 
         if (job.status === 'completed') {
-            statusHtml = `<a href="${API_BASE}/download/${job.id}" class="btn btn-primary" target="_blank">Download</a>`;
-            statusClass = 'color: green; font-weight: bold;';
+            // Use the generic /api/download/{job_id} endpoint
+            statusHtml = `<a href="${API_BASE}/download/${job.job_id}" class="btn btn-primary" target="_blank">Download</a>`;
         } else if (job.status === 'failed') {
             statusHtml = `<span style="color: red;">Failed</span>`;
         } else {
-            // Processing or Pending
-            // Use the whimsical text container class to target it later
-            statusHtml = `<span class="whimsical-text" style="color: var(--accent-pink);">${t.status_processing}...</span>`;
+            statusHtml = `
+                <div style="color: var(--accent-pink); display:flex; align-items:center;">
+                    ${GEAR_ICON}
+                    <span class="whimsical-target">${t.status_processing}...</span>
+                </div>`;
         }
 
         card.innerHTML = `
             <div class="flex-row" style="justify-content: space-between; align-items: center;">
                 <div>
-                    <strong>${job.video_url}</strong>
+                    <strong>${job.title || 'Unknown Video'}</strong>
                 </div>
                 <div>
                     ${statusHtml}
@@ -315,7 +468,8 @@ function renderJobs(jobs) {
 
 function rotateWhimsicalText() {
     const t = TRANSLATIONS[state.lang];
-    const elements = document.querySelectorAll('.whimsical-text');
+    // Target the new class used inside the span next to the icon
+    const elements = document.querySelectorAll('.whimsical-target');
     
     if (elements.length === 0) return;
 
@@ -327,5 +481,4 @@ function rotateWhimsicalText() {
     });
 }
 
-// Start App
 document.addEventListener('DOMContentLoaded', init);

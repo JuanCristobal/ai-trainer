@@ -36,21 +36,14 @@
 
         <!-- Checkout Section -->
         <section class="card text-right">
-            <div class="flex-row" style="justify-content: flex-end; gap: 2rem; margin-bottom: 1rem;">
-                <div>
-                    <small data-i18n="fee_base">Base Fee</small>
-                    <div>$0.00</div>
-                </div>
-                <div>
-                    <small data-i18n="fee_duration">Duration Fee</small>
-                    <div>$0.00</div>
-                </div>
-                <div>
-                    <strong data-i18n="total">Total</strong>
-                    <div id="total-price" style="font-size: 1.5rem; font-weight: 900;">$0.00</div>
+            <div class="mt-4 text-right">
+                <h3 data-i18n="total">Total</h3>
+                <p id="total-price" style="font-size: 2rem; font-weight: 900;">$0.00</p>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem; margin-top: 1rem;">
+                    <button id="checkout-btn" class="btn btn-primary" data-i18n="btn_checkout">Pay with Stripe</button>
+                    <button id="dev-pay-btn" class="btn" style="background-color: #333; color: #fff;">⚡ Dev Pay</button>
                 </div>
             </div>
-            <button id="checkout-btn" class="btn" data-i18n="btn_checkout">Pay with Stripe</button>
         </section>
     </main>
 

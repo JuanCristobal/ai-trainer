@@ -10,6 +10,8 @@ from pydantic import BaseModel
 import stripe
 from utils.redis_client import get_redis_client
 
+print("Gateway Starting...")
+
 # --- Config ---
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("gateway")
@@ -42,6 +44,10 @@ class RemoveFromCartRequest(BaseModel):
 class CheckoutRequest(BaseModel):
     session_id: str
 
+class PreviewRequest(BaseModel):
+    session_id: str
+    url: str
+
 # --- Helpers ---
 def calculate_price(duration_seconds: int) -> float:
     """
@@ -64,6 +70,7 @@ def get_video_metadata(url: str) -> Dict:
             "--no-warnings",
             url
         ]
+        # Run command
         result = subprocess.run(cmd, capture_output=True, text=True, check=True)
         data = json.loads(result.stdout)
         
@@ -71,16 +78,14 @@ def get_video_metadata(url: str) -> Dict:
         logger.info(f"yt-dlp raw data keys: {data.keys()}")
         
         duration = data.get("duration")
-        logger.info(f"Raw 'duration' value: {duration}")
         duration_string = data.get("duration_string")
-        logger.info(f"Raw 'duration_string' value: {duration_string}")
         
         # Fallback: Try duration_string if duration is missing/zero
         if not duration and duration_string:
             d_str = duration_string
-            logger.info(f"Numeric duration missing or zero, attempting to parse duration_string: {d_str}")
+            logger.info(f"Numeric duration missing, attempting to parse: {d_str}")
             try:
-                # Handle HH:MM:SS or MM:SS
+                # Handle HH:MM:SS or MM:SS or SS
                 parts = list(map(int, d_str.split(':')))
                 if len(parts) == 3:
                     duration = parts[0]*3600 + parts[1]*60 + parts[2]
@@ -92,8 +97,7 @@ def get_video_metadata(url: str) -> Dict:
                 logger.error(f"Failed to parse duration_string '{d_str}': {e}")
                 
         if not duration:
-            logger.warning("No valid 'duration' or parseable 'duration_string' found! Defaulting to 1 second.")
-            # Last ditch: default to 1 second to allow testing flow, but log error
+            logger.warning("No valid duration found! Defaulting to 1s.")
             duration = 1 
             
         return {
@@ -104,8 +108,10 @@ def get_video_metadata(url: str) -> Dict:
             "uploader": data.get("uploader")
         }
     except subprocess.CalledProcessError as e:
-        logger.error(f"yt-dlp error: {e.stderr}")
-        raise HTTPException(status_code=400, detail="Invalid URL or unable to fetch metadata.")
+        logger.error(f"yt-dlp error for URL {url}: {e.stderr}")
+        # Include snippet of stderr in details
+        detail_msg = f"Invalid URL or metadata error. Details: {e.stderr[:200] if e.stderr else 'Unknown error'}"
+        raise HTTPException(status_code=400, detail=detail_msg)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -137,12 +143,59 @@ def add_to_cart(req: AddToCartRequest):
         "price": price
     }
 
-    # 4. Save to Redis (Hash: cart:{session_id})
+    # 4. Save to Redis
     key = f"cart:{req.session_id}"
     redis_client.hset(key, item_id, json.dumps(item))
     redis_client.expire(key, 86400) # 24h TTL
 
     return {"message": "Added to cart", "item": item}
+
+@app.post("/api/preview")
+def request_preview(req: PreviewRequest):
+    # 1. Fetch Metadata (to get duration)
+    try:
+        metadata = get_video_metadata(req.url)
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        logger.error(f"Metadata fetch failed: {e}")
+        raise HTTPException(status_code=400, detail="Could not fetch video metadata")
+
+    # 2. Create Job
+    job_id = f"preview:{uuid.uuid4()}"
+    job_payload = {
+        "job_id": job_id,
+        "session_id": req.session_id,
+        "url": req.url,
+        "title": metadata["title"],
+        "duration": metadata["duration"],
+        "type": "preview",
+        "status": "queued"
+    }
+
+    # 3. Store in Redis
+    redis_client.hset(f"job:{job_id}", mapping=job_payload)
+    redis_client.expire(f"job:{job_id}", 3600)
+
+    # 4. Push to Worker Queue
+    redis_client.rpush("queue:transcription", json.dumps(job_payload))
+
+    return {"job_id": job_id, "message": "Preview generation started"}
+
+@app.get("/api/job/{job_id}")
+def get_job_status(job_id: str):
+    # Generic endpoint for both Preview and Full jobs
+    job = redis_client.hgetall(f"job:{job_id}")
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+        
+    return {
+        "job_id": job.get("job_id"),
+        "status": job.get("status"),
+        "result": job.get("result_text"),
+        "error": job.get("error")
+    }
 
 @app.get("/api/cart")
 def get_cart(session_id: str):
@@ -205,7 +258,7 @@ def create_checkout_session(req: CheckoutRequest):
             payment_method_types=["card"],
             line_items=line_items,
             mode="payment",
-            success_url="http://localhost:3000/downloads.html?session_id=" + req.session_id, # Update for Prod
+            success_url="http://localhost:3000/downloads.html?session_id=" + req.session_id, 
             cancel_url="http://localhost:3000/?canceled=true",
             metadata={"session_id": req.session_id}
         )
@@ -269,6 +322,19 @@ async def process_successful_payment(session_id: str):
     redis_client.delete(cart_key)
     logger.info(f"Processed payment for session {session_id}. Jobs queued.")
 
+@app.post("/api/dev/pay")
+async def dev_simulate_payment(req: CheckoutRequest):
+    """
+    DEV ONLY: Simulates a successful payment webhook.
+    Moves items from cart to worker queue immediately.
+    """
+    logger.info(f"DEV: Simulating payment for session {req.session_id}")
+    
+    # Reuse the exact same logic as the webhook
+    await process_successful_payment(req.session_id)
+    
+    return {"status": "success", "message": "Dev payment simulated"}
+
 @app.get("/api/jobs")
 def get_jobs(session_id: str):
     job_ids = redis_client.lrange(f"jobs:{session_id}", 0, -1)
@@ -288,12 +354,11 @@ def download_result(job_id: str, format: str = "md"):
     if not job or job.get("status") != "completed":
         raise HTTPException(status_code=404, detail="Result not found or not ready")
         
-    content = job.get("result_text") # Assuming plain text/md stored
+    content = job.get("result_text") 
     
     if not content:
          raise HTTPException(status_code=404, detail="Content empty")
 
-    # Basic content disposition (browser will download)
     return {
         "filename": f"{job.get('title', 'transcript')}.{format}",
         "content": content

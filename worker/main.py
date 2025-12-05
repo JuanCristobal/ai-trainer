@@ -6,6 +6,8 @@ import shutil
 import subprocess
 from utils.redis_client import get_redis_client
 from faster_whisper import WhisperModel
+from preview import generate_preview
+from markdown_generator import generate_markdown
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("worker")
@@ -63,7 +65,7 @@ def process_subtitles(url, job_id):
         logger.warning(f"Subtitle extraction failed: {e}")
     return None
 
-def process_whisper(url, job_id):
+def process_whisper(url, job_id, job_metadata):
     """Priority 2: Download audio & Transcribe"""
     # we don't know the extension yet, so we look for any file starting with job_id
     try:
@@ -88,13 +90,15 @@ def process_whisper(url, job_id):
 
         # 2. Transcribe
         logger.info(f"Transcribing {job_id} with Whisper...")
-        segments, info = model.transcribe(audio_path, beam_size=5)
+        segments_generator, info = model.transcribe(audio_path, beam_size=5)
         
-        transcript = []
-        for segment in segments:
-            transcript.append(f"[{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}")
+        # Iterate generator to get full list for our markdown generator
+        segments = list(segments_generator)
+        
+        # 3. Generate Markdown
+        markdown = generate_markdown(job_metadata, segments)
             
-        return "\n".join(transcript)
+        return markdown
         
     except Exception as e:
         logger.error(f"Whisper failed: {e}")
@@ -122,21 +126,31 @@ def worker_loop():
         update_job_status(job_id, "processing")
         
         try:
-            # Strategy 1: Subtitles
-            result = process_subtitles(url, job_id)
+            job_type = job.get("type", "full")
             
-            # Strategy 2: Whisper
-            if not result:
-                logger.info("No subtitles found. Falling back to Whisper.")
-                if model:
-                    result = process_whisper(url, job_id)
-                else:
-                    raise Exception("Whisper model not available")
-            
-            if result:
+            if job_type == "preview":
+                # Preview Mode
+                duration = job.get("duration", 0)
+                if not model:
+                     raise Exception("Whisper model not available")
+                result = generate_preview(url, duration, model)
                 update_job_status(job_id, "completed", result=result)
             else:
-                update_job_status(job_id, "failed", error="Could not extract transcript")
+                # Full Transcription Mode
+                # Strategy 1: Subtitles
+                result = process_subtitles(url, job_id)
+                
+                # Strategy 2: Whisper
+                if not result:
+                    logger.info("No subtitles found. Falling back to Whisper.")
+                    if model:
+                        result = process_whisper(url, job_id, job)
+                    else:
+                        raise Exception("Whisper model not available")                
+                if result:
+                    update_job_status(job_id, "completed", result=result)
+                else:
+                    update_job_status(job_id, "failed", error="Could not extract transcript")
                 
         except Exception as e:
             logger.error(f"Job {job_id} failed: {e}")
