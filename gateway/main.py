@@ -3,9 +3,12 @@ import json
 import logging
 import subprocess
 import uuid
+import io
+import zipfile
 from typing import List, Dict
 from fastapi import FastAPI, HTTPException, Request, Header
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import StreamingResponse, Response
 from pydantic import BaseModel
 import stripe
 from utils.redis_client import get_redis_client
@@ -358,8 +361,50 @@ def download_result(job_id: str, format: str = "md"):
     
     if not content:
          raise HTTPException(status_code=404, detail="Content empty")
+    
+    # Clean filename
+    title = job.get("title", "transcript").replace("/", "_").replace("\\", "_")
+    filename = f"{title}.{format}"
 
-    return {
-        "filename": f"{job.get('title', 'transcript')}.{format}",
-        "content": content
-    }
+    # Return as file download
+    return Response(
+        content=content,
+        media_type="text/markdown",
+        headers={"Content-Disposition": f"attachment; filename={filename}"}
+    )
+
+@app.get("/api/download-all/{session_id}")
+def download_all_zip(session_id: str):
+    """Bundles all completed transcripts into a single ZIP file."""
+    # 1. Get all jobs for session
+    job_ids = redis_client.lrange(f"jobs:{session_id}", 0, -1)
+    if not job_ids:
+        raise HTTPException(status_code=404, detail="No jobs found for this session")
+
+    # 2. Prepare ZIP in memory
+    zip_buffer = io.BytesIO()
+    files_added = 0
+
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        for jid in job_ids:
+            job = redis_client.hgetall(f"job:{jid}")
+            if job and job.get("status") == "completed":
+                content = job.get("result_text")
+                if content:
+                    # Clean filename
+                    title = job.get("title", f"transcript_{jid}").replace("/", "_").replace("\\", "_")
+                    filename = f"{title}.md"
+                    zf.writestr(filename, content)
+                    files_added += 1
+    
+    if files_added == 0:
+        raise HTTPException(status_code=404, detail="No completed transcripts found to zip.")
+
+    zip_buffer.seek(0)
+    
+    # 3. Stream Response
+    return StreamingResponse(
+        zip_buffer, 
+        media_type="application/zip", 
+        headers={"Content-Disposition": f"attachment; filename=transcripts_{session_id[:8]}.zip"}
+    )

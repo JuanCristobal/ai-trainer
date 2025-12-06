@@ -79,6 +79,7 @@ const state = {
 };
 
 const GEAR_ICON = `<svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
+const TRASH_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
 
 // --- Core Functions ---
 
@@ -108,6 +109,9 @@ function init() {
     }
     state.sessionId = storedSession;
 
+    // Load History
+    loadHistory();
+
     // Route Handler
     if (document.getElementById('cart-list')) {
         initCartPage();
@@ -117,6 +121,80 @@ function init() {
     
     // Start Whimsical Rotator globally
     setInterval(rotateWhimsicalText, 2500);
+}
+
+// --- History Logic ---
+
+function loadHistory() {
+    const container = document.getElementById('history-container');
+    const list = document.getElementById('history-list');
+    if (!container || !list) return;
+
+    let raw = localStorage.getItem('recentSessions');
+    let sessions = raw ? JSON.parse(raw) : [];
+    
+    const now = Date.now();
+    const oneHour = 3600 * 1000;
+    
+    // Filter expired sessions
+    const validSessions = sessions.filter(s => (now - s.timestamp) < oneHour);
+    
+    // Save cleaned list
+    localStorage.setItem('recentSessions', JSON.stringify(validSessions));
+    
+    // Remove current session from view if present in history (unlikely but possible)
+    const visibleSessions = validSessions.filter(s => s.id !== state.sessionId);
+
+    if (visibleSessions.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+
+    // Render
+    container.style.display = 'block'; // Show container
+    list.innerHTML = '';
+    
+    visibleSessions.forEach(s => {
+        const elapsedMins = Math.floor((now - s.timestamp) / 60000);
+        const minsLeft = 60 - elapsedMins;
+        
+        const li = document.createElement('li');
+        // CSS class handles styling now
+        li.innerHTML = `
+            <span>Order ...${s.id.slice(-4)}</span>
+            <small style="opacity: 0.6;">${minsLeft}m</small>
+        `;
+        li.onclick = () => restoreSession(s.id);
+        
+        list.appendChild(li);
+    });
+}
+
+function restoreSession(oldId) {
+    if (confirm("Switch to this previous order? Current cart will be saved.")) {
+        resetSession(oldId); 
+    }
+}
+
+function resetSession(targetId = null) {
+    // 1. Save current session to history before switching
+    if (state.sessionId) {
+        let raw = localStorage.getItem('recentSessions');
+        let sessions = raw ? JSON.parse(raw) : [];
+        
+        // Add current only if not already there
+        if (!sessions.find(s => s.id === state.sessionId)) {
+            sessions.push({ id: state.sessionId, timestamp: Date.now() });
+            localStorage.setItem('recentSessions', JSON.stringify(sessions));
+        }
+    }
+
+    // 2. Switch ID
+    const newId = targetId || crypto.randomUUID();
+    localStorage.setItem('vtt_session_id', newId);
+    
+    // 3. Redirect to Home (Cart)
+    window.location.href = "index.html";
 }
 
 // --- Cart Logic ---
@@ -346,7 +424,12 @@ function renderCart() {
                     <small>${Math.round(item.duration || 0)}s</small>
                 </div>
                 <div class="text-right">
-                    <div style="font-weight: bold;">$${(item.price || 0).toFixed(2)}</div>
+                    <div class="flex-row" style="gap: 0.5rem; justify-content: flex-end; align-items: center;">
+                        <div style="font-weight: bold;">$${(item.price || 0).toFixed(2)}</div>
+                        <button title="Remove" style="background:none; border:none; cursor:pointer; color: #000; padding: 4px; display: flex; align-items: center;" onmouseover="this.style.color='red'" onmouseout="this.style.color='#000'" onclick="removeFromCart('${item.id}')">
+                            ${TRASH_ICON}
+                        </button>
+                    </div>
                     <div class="preview-wrapper">
                         <button class="btn" style="margin-top: 0.5rem; background-color: #ffffff;" onclick="handlePreviewClick(event, this, '${item.url}', '${resultId}')">
                             ${t.btn_preview}
@@ -365,13 +448,33 @@ function renderCart() {
     totalEl.textContent = `$${total.toFixed(2)}`;
 }
 
-// Global handler (Simplified, no propagation block needed for inline logic)
+async function removeFromCart(itemId) {
+    const t = TRANSLATIONS[state.lang];
+    // Optional: Confirm dialog
+    // if (!confirm("Remove this video?")) return;
+
+    try {
+        const res = await fetch(`${API_BASE}/cart/${itemId}?session_id=${state.sessionId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!res.ok) throw new Error("Failed to delete");
+        
+        await fetchCart(); // Refresh list
+    } catch (e) {
+        alert(t.alert_error + e.message);
+    }
+}
+
+// Global handler
 window.handlePreviewClick = function(event, btn, url, resultId) {
     // If button text is "Done", we should probably just collapse? 
     // But the onclick replacement in pollPreviewJob handles that.
     // This entry point is for "Start Preview".
     requestPreview(url, btn, resultId);
 };
+window.removeFromCart = removeFromCart;
+window.resetSession = resetSession;
 
 /* Removed Modal Functions (openCardModal, closeModal) */
 
@@ -431,6 +534,21 @@ function renderJobs(jobs) {
     }
 
     list.innerHTML = ''; 
+
+    // Check completed count
+    const completedCount = jobs.filter(j => j.status === 'completed').length;
+    if (completedCount > 1) {
+        const zipBtn = document.createElement('div');
+        zipBtn.style.textAlign = 'right';
+        zipBtn.style.marginBottom = '1rem';
+        zipBtn.innerHTML = `
+            <a href="${API_BASE}/download-all/${state.sessionId}" class="btn" style="background-color: #333; color: white;">
+                Download All (.zip)
+            </a>
+        `;
+        list.appendChild(zipBtn);
+    }
+    // Removed duplicate New Order button injection
 
     jobs.forEach(job => {
         const card = document.createElement('div');
