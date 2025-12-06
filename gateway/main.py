@@ -89,7 +89,38 @@ class PreviewRequest(BaseModel):
     session_id: str
     url: str
 
+import re
+
 # --- Helpers ---
+def validate_url(url: str) -> str:
+    """
+    Security: Prevent Command Injection and SSRF.
+    1. Must start with http:// or https://
+    2. Must match known domains (youtube, tiktok, instagram) or basic URL structure
+    3. Must not contain leading dashes (argument injection)
+    """
+    if not url.startswith(("http://", "https://")):
+        raise ValueError("Invalid URL schema")
+    
+    if url.strip().startswith("-"):
+        raise ValueError("Invalid URL format")
+        
+    # Basic domain whitelist (adjust as needed)
+    allowed_domains = [
+        r"^https?://(www\.)?youtube\.com/",
+        r"^https?://youtu\.be/",
+        r"^https?://(www\.)?tiktok\.com/",
+        r"^https?://(www\.)?instagram\.com/"
+    ]
+    
+    if not any(re.match(pattern, url) for pattern in allowed_domains):
+        # Fallback for now: allow generic http(s) but ensure no spaces/control chars
+        # strictly to prevent shell expansion if any
+        if not re.match(r"^https?://[a-zA-Z0-9\-\._~:/?#\[\]@!$&'\(\)*+,;=%]+$", url):
+             raise ValueError("URL domain not allowed or malformed")
+
+    return url
+
 def calculate_price(duration_seconds: int) -> float:
     if duration_seconds > 1800:
         raise ValueError("Video exceeds 30 minute limit.")
@@ -98,9 +129,24 @@ def calculate_price(duration_seconds: int) -> float:
     return round(price, 2)
 
 def get_video_metadata(url: str) -> Dict:
+    """Extracts metadata using yt-dlp"""
+    # 1. Validate URL
     try:
-        cmd = ["yt-dlp", "--dump-json", "--no-warnings", url]
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        safe_url = validate_url(url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+    try:
+        # 2. Secure Command (Use '--' to separate args)
+        cmd = [
+            "yt-dlp",
+            "--dump-json",
+            "--no-warnings",
+            "--", # Security barrier
+            safe_url
+        ]
+        # Run command with timeout
+        result = subprocess.run(cmd, capture_output=True, text=True, check=True, timeout=30)
         data = json.loads(result.stdout)
         
         duration = data.get("duration")
@@ -129,9 +175,13 @@ def get_video_metadata(url: str) -> Dict:
             "platform": data.get("extractor_key"),
             "uploader": data.get("uploader")
         }
+    except subprocess.TimeoutExpired:
+        logger.error(f"yt-dlp timeout for URL {url}")
+        raise HTTPException(status_code=408, detail="Metadata fetch timed out")
     except subprocess.CalledProcessError as e:
-        detail_msg = f"Invalid URL or metadata error. Details: {e.stderr[:200] if e.stderr else 'Unknown error'}"
-        raise HTTPException(status_code=400, detail=detail_msg)
+        # Do NOT leak full stderr
+        logger.error(f"yt-dlp error for URL {url}: {e.stderr}")
+        raise HTTPException(status_code=400, detail="Could not fetch metadata. Is the video valid/public?")
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -144,6 +194,10 @@ def health_check():
 
 @api.post("/cart/add")
 def add_to_cart(req: AddToCartRequest):
+    # Validate session_id
+    if not re.match(r"^[a-f0-9\-]+$", req.session_id):
+        raise HTTPException(status_code=400, detail="Invalid Session ID")
+
     metadata = get_video_metadata(req.url)
     try:
         price = calculate_price(metadata["duration"])
@@ -306,6 +360,10 @@ async def process_successful_payment(session_id: str):
 
 @api.post("/dev/pay")
 async def dev_simulate_payment(req: CheckoutRequest):
+    # Security Gate
+    if os.getenv("ENV") != "development":
+        raise HTTPException(status_code=403, detail="Dev endpoints disabled in production")
+
     logger.info(f"DEV: Simulating payment for session {req.session_id}")
     
     # 1. Calculate Total Amount (Before cart is cleared)

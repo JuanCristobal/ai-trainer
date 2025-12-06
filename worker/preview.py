@@ -43,6 +43,7 @@ def generate_preview(url: str, total_duration: float, model) -> str:
             "-o", "-",        
             "--quiet",        
             "--no-warnings",
+            "--", # Security barrier
             url
         ]
 
