@@ -69,6 +69,39 @@ const TRANSLATIONS = {
     }
 };
 
+// Environment & traps
+const IS_PROD = !location.hostname.match(/(?:localhost|127\.0\.0\.1)/);
+const ASCII_FINGER = `
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣠⣴⣾⣿⣿⣿⣷⣦⣄⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣼⣿⣿⣿⣿⣿⣿⣿⣿⣿⣧⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⢀⣀⣀⣀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣀⣀⣀⡀⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠀⠀⠀⠀⠀⠀
+⠀⠀⠀⠀⠀⠀⠙⠛⠛⠛⠛⠿⢿⣿⣿⣿⣿⡿⠿⠛⠛⠛⠛⠋⠀⠀⠀⠀⠀⠀⠀
+`.trim();
+
+function devPayTrap() {
+    console.log(ASCII_FINGER);
+    alert("Nice try. Check the console.");
+}
+
 // --- State Management ---
 const state = {
     lang: 'en',
@@ -251,29 +284,35 @@ async function initCartPage() {
     // Dev Pay Handler
     const devBtn = document.getElementById('dev-pay-btn');
     if (devBtn) {
-        devBtn.addEventListener('click', async () => {
-            if (state.cart.length === 0) return;
-            
-            devBtn.disabled = true;
-            devBtn.textContent = "...";
-            
-            try {
-                const res = await fetch(`${API_BASE}/dev/pay`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ session_id: state.sessionId })
-                });
+        if (IS_PROD) {
+            devBtn.style.display = 'none';
+            devBtn.onclick = devPayTrap;
+            window.devPay = devPayTrap; // honeypot for console explorers
+        } else {
+            devBtn.addEventListener('click', async () => {
+                if (state.cart.length === 0) return;
                 
-                if (!res.ok) throw new Error("Dev pay failed");
+                devBtn.disabled = true;
+                devBtn.textContent = "...";
                 
-                // Success: Redirect to downloads
-                window.location.href = "downloads.html";
-            } catch (e) {
-                alert("Dev Error: " + e.message);
-                devBtn.disabled = false;
-                devBtn.textContent = "⚡ Dev Pay";
-            }
-        });
+                try {
+                    const res = await fetch(`${API_BASE}/dev/pay`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ session_id: state.sessionId })
+                    });
+                    
+                    if (!res.ok) throw new Error("Dev pay failed");
+                    
+                    // Success: Redirect to downloads
+                    window.location.href = "downloads.html";
+                } catch (e) {
+                    alert("Dev Error: " + e.message);
+                    devBtn.disabled = false;
+                    devBtn.textContent = "⚡ Dev Pay";
+                }
+            });
+        }
     }
 
     // Initial Fetch

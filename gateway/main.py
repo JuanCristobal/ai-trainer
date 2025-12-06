@@ -9,7 +9,7 @@ from typing import List, Dict
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, HTTPException, Request, Header, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import StreamingResponse, Response, FileResponse
+from fastapi.responses import StreamingResponse, Response, FileResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 import stripe
@@ -95,9 +95,7 @@ import re
 def validate_url(url: str) -> str:
     """
     Security: Prevent Command Injection and SSRF.
-    1. Must start with http:// or https://
-    2. Must match known domains (youtube, tiktok, instagram) or basic URL structure
-    3. Must not contain leading dashes (argument injection)
+    Only allow explicit video domains and block arg-style prefixes.
     """
     if not url.startswith(("http://", "https://")):
         raise ValueError("Invalid URL schema")
@@ -105,19 +103,15 @@ def validate_url(url: str) -> str:
     if url.strip().startswith("-"):
         raise ValueError("Invalid URL format")
         
-    # Basic domain whitelist (adjust as needed)
     allowed_domains = [
         r"^https?://(www\.)?youtube\.com/",
         r"^https?://youtu\.be/",
         r"^https?://(www\.)?tiktok\.com/",
-        r"^https?://(www\.)?instagram\.com/"
+        r"^https?://(www\.)?instagram\.com/",
     ]
     
     if not any(re.match(pattern, url) for pattern in allowed_domains):
-        # Fallback for now: allow generic http(s) but ensure no spaces/control chars
-        # strictly to prevent shell expansion if any
-        if not re.match(r"^https?://[a-zA-Z0-9\-\._~:/?#\[\]@!$&'\(\)*+,;=%]+$", url):
-             raise ValueError("URL domain not allowed or malformed")
+        raise ValueError("Invalid Domain")
 
     return url
 
@@ -166,7 +160,9 @@ def get_video_metadata(url: str) -> Dict:
                 pass
                 
         if not duration:
-            duration = 1 
+            duration = 1
+        if duration > 1800:
+            raise HTTPException(status_code=400, detail="Video too long for MVP")
             
         return {
             "title": data.get("title", "Unknown Video"),
@@ -198,6 +194,12 @@ def add_to_cart(req: AddToCartRequest):
     if not re.match(r"^[a-f0-9\-]+$", req.session_id):
         raise HTTPException(status_code=400, detail="Invalid Session ID")
 
+    # Enforce domain allowlist
+    try:
+        validate_url(req.url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     metadata = get_video_metadata(req.url)
     try:
         price = calculate_price(metadata["duration"])
@@ -222,6 +224,11 @@ def add_to_cart(req: AddToCartRequest):
 
 @api.post("/preview")
 def request_preview(req: PreviewRequest):
+    try:
+        validate_url(req.url)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
     try:
         metadata = get_video_metadata(req.url)
     except HTTPException as e:
@@ -361,8 +368,11 @@ async def process_successful_payment(session_id: str):
 @api.post("/dev/pay")
 async def dev_simulate_payment(req: CheckoutRequest):
     # Security Gate
-    if os.getenv("ENV") != "development":
-        raise HTTPException(status_code=403, detail="Dev endpoints disabled in production")
+    if os.getenv("ENVIRONMENT") == "production":
+        return JSONResponse(
+            status_code=403,
+            content={"error": "Nice try, hacker. Get out."}
+        )
 
     logger.info(f"DEV: Simulating payment for session {req.session_id}")
     

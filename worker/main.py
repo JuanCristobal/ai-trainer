@@ -99,6 +99,25 @@ def process_whisper(url, job_id, job_metadata):
         if not audio_path:
             raise Exception("Audio download failed (file not found)")
 
+        # Security: Verify Duration matches constraints (Max 30m)
+        try:
+            probe_cmd = [
+                "ffprobe", "-v", "error", "-show_entries", 
+                "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", 
+                audio_path
+            ]
+            probe_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            actual_duration = float(probe_res.stdout.strip())
+            
+            if actual_duration > 1800: # 30 mins hard limit
+                raise ValueError(f"Video exceeds 30m limit (Actual: {actual_duration:.2f}s)")
+                
+        except ValueError as ve:
+            raise ve
+        except Exception as e:
+            logger.warning(f"Could not verify duration: {e}")
+            raise ValueError("Could not verify media duration; rejecting for safety.")
+
         # 2. Transcribe
         logger.info(f"Transcribing {job_id} with Whisper...")
         segments_generator, info = model.transcribe(audio_path, beam_size=5)

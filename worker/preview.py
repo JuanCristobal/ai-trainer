@@ -84,7 +84,12 @@ def generate_preview(url: str, total_duration: float, model) -> str:
             raise TimeoutError("Preview extraction timed out.")
 
         # Ensure p1 terminates (it should have received SIGPIPE when p2 closed stdin, or finished)
-        p1.wait()
+        try:
+            p1.wait(timeout=60)
+        except subprocess.TimeoutExpired:
+            logger.error("yt-dlp hung during preview; killing process.")
+            p1.kill()
+            raise TimeoutError("Preview download timed out.")
 
         if not os.path.exists(temp_filename) or os.path.getsize(temp_filename) == 0:
              raise Exception("FFmpeg failed to generate audio file.")
