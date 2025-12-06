@@ -161,40 +161,64 @@ function loadHistory() {
         const li = document.createElement('li');
         // CSS class handles styling now
         li.innerHTML = `
-            <span>Order ...${s.id.slice(-4)}</span>
-            <small style="opacity: 0.6;">${minsLeft}m</small>
+            <div onclick="restoreSession('${s.id}')" style="flex-grow:1;">
+                <span>Order ...${s.id.slice(-4)}</span>
+                <small style="opacity: 0.6; margin-left: 0.5rem;">${minsLeft}m</small>
+            </div>
+            <button onclick="deleteHistoryItem('${s.id}')" style="background:none; border:none; cursor:pointer; color:red; font-weight:bold; padding:0 0.5rem;">&times;</button>
         `;
-        li.onclick = () => restoreSession(s.id);
         
         list.appendChild(li);
     });
 }
 
+function deleteHistoryItem(id) {
+    let raw = localStorage.getItem('recentSessions');
+    let sessions = raw ? JSON.parse(raw) : [];
+    const newSessions = sessions.filter(s => s.id !== id);
+    localStorage.setItem('recentSessions', JSON.stringify(newSessions));
+    loadHistory(); // Re-render
+}
+
 function restoreSession(oldId) {
     if (confirm("Switch to this previous order? Current cart will be saved.")) {
-        resetSession(oldId); 
+        // Save current if needed (handled by resetSession usually, but here we switch manually)
+        // We reuse resetSession logic but point to oldId
+        
+        // Manually switch
+        resetSession(oldId, true); 
     }
 }
 
-function resetSession(targetId = null) {
-    // 1. Save current session to history before switching
+function resetSession(targetId = null, isRestore = false) {
+    // 1. Save current session to history ONLY if it has actual orders
     if (state.sessionId) {
-        let raw = localStorage.getItem('recentSessions');
-        let sessions = raw ? JSON.parse(raw) : [];
+        const hasOrders = localStorage.getItem(`vtt_has_orders_${state.sessionId}`);
         
-        // Add current only if not already there
-        if (!sessions.find(s => s.id === state.sessionId)) {
-            sessions.push({ id: state.sessionId, timestamp: Date.now() });
-            localStorage.setItem('recentSessions', JSON.stringify(sessions));
+        if (hasOrders === 'true') {
+            let raw = localStorage.getItem('recentSessions');
+            let sessions = raw ? JSON.parse(raw) : [];
+            
+            // Add current only if not already there
+            if (!sessions.find(s => s.id === state.sessionId)) {
+                sessions.push({ id: state.sessionId, timestamp: Date.now() });
+                localStorage.setItem('recentSessions', JSON.stringify(sessions));
+            }
         }
+        // Cleanup flag
+        localStorage.removeItem(`vtt_has_orders_${state.sessionId}`);
     }
 
     // 2. Switch ID
     const newId = targetId || crypto.randomUUID();
     localStorage.setItem('vtt_session_id', newId);
     
-    // 3. Redirect to Home (Cart)
-    window.location.href = "index.html";
+    // 3. Redirect
+    if (isRestore) {
+        window.location.href = "downloads.html";
+    } else {
+        window.location.href = "index.html";
+    }
 }
 
 // --- Cart Logic ---
@@ -475,6 +499,8 @@ window.handlePreviewClick = function(event, btn, url, resultId) {
 };
 window.removeFromCart = removeFromCart;
 window.resetSession = resetSession;
+window.restoreSession = restoreSession;
+window.deleteHistoryItem = deleteHistoryItem;
 
 /* Removed Modal Functions (openCardModal, closeModal) */
 
@@ -529,9 +555,25 @@ function renderJobs(jobs) {
     const t = TRANSLATIONS[state.lang];
     
     if (!jobs || jobs.length === 0) {
+        // ... existing auto-cleanup logic ...
+        let raw = localStorage.getItem('recentSessions');
+        let sessions = raw ? JSON.parse(raw) : [];
+        const isHistory = sessions.find(s => s.id === state.sessionId);
+        
+        if (isHistory) {
+            console.warn("Session is empty/expired. Cleaning up.");
+            alert("This order has expired or is empty.");
+            deleteHistoryItem(state.sessionId); 
+            window.location.href = "index.html";
+            return;
+        }
+
         list.innerHTML = `<p class="text-center" style="opacity: 0.6;">${t.downloads_loading}</p>`;
         return;
     }
+
+    // Mark session as having valid orders so it can be saved to history
+    localStorage.setItem(`vtt_has_orders_${state.sessionId}`, 'true');
 
     list.innerHTML = ''; 
 
