@@ -3,14 +3,14 @@
  * Handles Localization, Cart Logic, Preview, and Job Polling.
  */
 
-const API_BASE = 'http://localhost:8000/api';
+const API_BASE = '/api';
 
 // --- Localization Configuration ---
 const TRANSLATIONS = {
     en: {
         title: "Video To Text",
-        subtitle: "Extract transcripts & metadata from YouTube, TikTok, Instagram.",
-        placeholder_url: "Paste video URL here...",
+        subtitle: "Extract transcripts & metadata from YouTube.",
+        placeholder_url: "Paste YouTube URL here...",
         btn_add: "Add",
         cart_title: "Your Cart",
         cart_empty: "Your cart is currently empty.",
@@ -39,8 +39,8 @@ const TRANSLATIONS = {
     },
     es: {
         title: "Video a Texto",
-        subtitle: "Extrae transcripciones y metadatos de YouTube, TikTok, Instagram.",
-        placeholder_url: "Pega la URL del video aquí...",
+        subtitle: "Extrae transcripciones y metadatos de YouTube.",
+        placeholder_url: "Pega la URL de YouTube aquí...",
         btn_add: "Agregar",
         cart_title: "Tu Carrito",
         cart_empty: "Tu carrito está vacío actualmente.",
@@ -84,6 +84,7 @@ const TRASH_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" 
 // --- Core Functions ---
 
 function init() {
+    console.log("App init started");
     // Detect Language
     const userLang = navigator.language || navigator.userLanguage;
     if (userLang.startsWith('es')) {
@@ -108,14 +109,17 @@ function init() {
         localStorage.setItem('vtt_session_id', storedSession);
     }
     state.sessionId = storedSession;
+    console.log("Session ID:", state.sessionId);
 
     // Load History
     loadHistory();
 
     // Route Handler
     if (document.getElementById('cart-list')) {
+        console.log("Detected Cart Page");
         initCartPage();
     } else if (document.getElementById('status-list')) {
+        console.log("Detected Downloads Page");
         initDownloadsPage();
     }
     
@@ -224,11 +228,20 @@ function resetSession(targetId = null, isRestore = false) {
 // --- Cart Logic ---
 
 async function initCartPage() {
+    console.log("initCartPage running");
     const addBtn = document.getElementById('add-btn');
     const input = document.getElementById('url-input');
     const checkoutBtn = document.getElementById('checkout-btn');
 
-    addBtn.addEventListener('click', () => addToCart(input.value));
+    if(addBtn) {
+        addBtn.addEventListener('click', () => {
+            console.log("Add Button Clicked");
+            addToCart(input.value);
+        });
+    } else {
+        console.error("Add Button not found!");
+    }
+    
     input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') addToCart(input.value);
     });
@@ -279,10 +292,14 @@ async function fetchCart() {
 }
 
 async function addToCart(url) {
+    console.log("addToCart called with:", url);
     const t = TRANSLATIONS[state.lang];
     const input = document.getElementById('url-input');
 
-    if (!url) return;
+    if (!url) {
+        console.warn("No URL provided");
+        return;
+    }
     if (state.cart.length >= 10) {
         alert(t.alert_cart_full);
         return;
@@ -294,6 +311,7 @@ async function addToCart(url) {
     addBtn.textContent = "...";
 
     try {
+        console.log("Fetching API...");
         const response = await fetch(`${API_BASE}/cart/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -306,6 +324,7 @@ async function addToCart(url) {
         if (!response.ok) throw new Error('Failed to add video');
 
         const data = await response.json();
+        console.log("Added item:", data);
         // Refresh cart from server to be safe
         await fetchCart(); 
         
@@ -419,12 +438,16 @@ function renderPreviewResult(text, container, btn, url) {
 
 function renderCart() {
     const list = document.getElementById('cart-list');
-    const countSpan = document.getElementById('cart-count');
+    // Updated ID to match the new Navbar structure
+    const countSpan = document.getElementById('nav-cart-count');
     const totalEl = document.getElementById('total-price');
     const t = TRANSLATIONS[state.lang];
 
     list.innerHTML = '';
-    countSpan.textContent = `${state.cart.length} items`;
+    
+    if (countSpan) {
+        countSpan.textContent = state.cart.length > 0 ? `Cart (${state.cart.length})` : 'Cart';
+    }
 
     if (state.cart.length === 0) {
         list.innerHTML = `<p style="opacity: 0.6;">${t.cart_empty}</p>`;
