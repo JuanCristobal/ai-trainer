@@ -11,6 +11,7 @@ venv/
 # IDE
 .vscode/
 .idea/
+.docker_data/
 
 # Docker
 dist/
