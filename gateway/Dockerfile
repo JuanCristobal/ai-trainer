@@ -19,5 +19,5 @@ COPY gateway/ .
 # Copy Frontend Code (from root context)
 COPY frontend/ /app/frontend
 
-# CMD for Production
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+# CMD for Production / Railway (dynamic port via $PORT)
+CMD ["sh", "-c", "uvicorn main:app --host 0.0.0.0 --port ${PORT:-8000}"]
