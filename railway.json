@@ -1,0 +1,35 @@
+{
+  "$schema": "https://railway.app/railway.schema.json",
+  "build": {
+    "nixpacksPlan": {
+      "phases": {
+        "setup": {
+          "nixPkgs": [
+            "ffmpeg"
+          ]
+        }
+      }
+    }
+  },
+  "deploy": {
+    "services": {
+      "gateway": {
+        "rootDirectory": ".",
+        "dockerfilePath": "gateway/Dockerfile",
+        "healthcheckPath": "/api/health",
+        "restartPolicyType": "ON_FAILURE",
+        "network": {
+          "public": true
+        }
+      },
+      "worker": {
+        "rootDirectory": ".",
+        "dockerfilePath": "worker/Dockerfile",
+        "restartPolicyType": "ON_FAILURE",
+        "network": {
+          "public": false
+        }
+      }
+    }
+  }
+}

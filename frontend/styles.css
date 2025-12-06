@@ -1,0 +1,287 @@
+:root {
+    --bg-color: #ffffff;
+    --text-color: #000000;
+    --accent-pink: #ff90e8;
+    --accent-yellow: #ffc900;
+    --border: 2px solid #000000;
+    --shadow: 4px 4px 0px #000000;
+    --font-main: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    /* padding: 2rem; Removed to allow nav to touch edges */
+}
+
+/* Layout */
+.container {
+    /* max-width: 800px; Removed default constraint */
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    /* gap: 2rem; */
+}
+
+/* Typography */
+h1, h2, h3 {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+/* Components */
+.card {
+    background-color: #fff;
+    border: 2px solid #000;
+    box-shadow: 4px 4px 0px #000;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.btn {
+    display: inline-block;
+    background-color: var(--accent-yellow);
+    color: var(--text-color);
+    border: var(--border);
+    box-shadow: var(--shadow);
+    padding: 1rem 2rem;
+    font-family: var(--font-main);
+    font-weight: 700;
+    font-size: 1rem;
+    text-transform: uppercase;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all 0.1s ease;
+}
+
+.btn:hover {
+    transform: translate(-2px, -2px);
+    box-shadow: 6px 6px 0px #000;
+}
+
+.btn:active {
+    transform: translate(2px, 2px);
+    box-shadow: 2px 2px 0px #000;
+}
+
+.btn-primary {
+    background-color: var(--accent-pink);
+}
+
+.input {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    font-family: var(--font-main);
+    font-size: 1.25rem; /* Bigger font */
+    border: var(--border);
+    box-shadow: var(--shadow);
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.input:focus {
+    background-color: #fefefe;
+}
+
+/* Utility */
+.flex-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.text-right {
+    text-align: right;
+}
+
+.mt-4 { margin-top: 1rem; }
+.mb-4 { margin-bottom: 1rem; }
+
+/* Animation Utilities */
+@keyframes spin { 
+    100% { transform: rotate(360deg); } 
+}
+
+.status-icon {
+    display: inline-block;
+    width: 1.2em;
+    height: 1.2em;
+    margin-right: 0.5rem;
+    vertical-align: text-bottom;
+    animation: spin 2s linear infinite;
+    fill: currentColor;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+/* Task 2: Hover Reveal */
+.preview-wrapper {
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+}
+
+.card:hover .preview-wrapper {
+    opacity: 1;
+}
+
+/* History Dropdown (Gumroad Style) */
+.brutalist-history {
+    /* Position handled by Nav now? No, keep it relative or adjust */
+    /* position: absolute; top: 1.5rem; right: 1.5rem; */
+    position: relative; /* Inside Nav */
+    z-index: 100;
+    font-family: var(--font-main);
+}
+
+.brutalist-history summary {
+    list-style: none;
+    cursor: pointer;
+    /* background: #fff; */
+    /* border: 2px solid #000; */
+    /* box-shadow: 4px 4px 0px #000; */
+    /* padding: 0.5rem 1rem; */
+    /* Simplified for Nav Icon style */
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: bold;
+}
+
+.brutalist-history ul {
+    position: absolute;
+    right: 0;
+    top: 150%; /* Below Nav */
+    width: 280px;
+    background: #fff;
+    border: 2px solid #000;
+    box-shadow: 4px 4px 0px #000;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.brutalist-history li {
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid #000;
+    cursor: pointer;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.9rem;
+}
+
+.brutalist-history li:last-child {
+    border-bottom: none;
+}
+
+.brutalist-history li:hover {
+    background: var(--accent-yellow);
+}
+
+
+/* --- Landing Page Styles --- */
+
+/* Icons */
+.icon {
+    width: 24px;
+    height: 24px;
+    stroke: currentColor;
+    fill: none;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vertical-align: middle;
+}
+
+/* Navbar */
+.site-nav {
+    position: sticky;
+    top: 0;
+    background: #fff;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #000;
+    padding: 1rem 2rem;
+    z-index: 900;
+}
+
+.brand-text {
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: -0.5px;
+    font-size: 1.25rem;
+    text-decoration: none;
+    color: #000;
+}
+
+.nav-right {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+/* Hero Text Only */
+.hero-text-section {
+    text-align: center;
+    padding: 4rem 1rem 2rem;
+}
+
+.hero-text-section h1 {
+    font-size: 4rem;
+    font-weight: 900;
+    line-height: 1;
+    margin-bottom: 1rem;
+}
+
+@media (max-width: 600px) {
+    .hero-text-section h1 { font-size: 2.5rem; }
+}
+
+.hero-text-section p {
+    font-size: 1.25rem;
+    color: #555;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Tool Stage (The App Window) */
+.tool-stage {
+    max-width: 800px;
+    margin: 0 auto 4rem;
+    background: #fff;
+    border: 2px solid #000;
+    box-shadow: 6px 6px 0px #000;
+    padding: 3rem; 
+}
+
+/* Footer */
+.site-footer {
+    text-align: center;
+    padding: 2rem 0;
+    border-top: 2px solid #000;
+    opacity: 0.6;
+    font-size: 0.9rem;
+    margin-top: 4rem;
+}

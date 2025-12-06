@@ -6,6 +6,8 @@ import shutil
 import subprocess
 from utils.redis_client import get_redis_client
 from faster_whisper import WhisperModel
+from preview import generate_preview
+from markdown_generator import generate_markdown
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("worker")
@@ -36,6 +38,7 @@ def update_job_status(job_id, status, result=None, error=None):
 def process_subtitles(url, job_id):
     """Priority 1: Try extracting existing subs"""
     try:
+        # Security: Use '--'
         cmd = [
             "yt-dlp",
             "--write-sub",
@@ -43,9 +46,11 @@ def process_subtitles(url, job_id):
             "--sub-lang", "en,es",
             "--convert-subs", "vtt",
             "--output", f"/tmp/{job_id}",
+            "--",
             url
         ]
-        subprocess.run(cmd, check=True, capture_output=True)
+        # Timeout: 60s max for metadata/subs
+        subprocess.run(cmd, check=True, capture_output=True, timeout=60)
         
         # Check for both EN and ES vtt files
         for lang in ["en", "es"]:
@@ -59,49 +64,78 @@ def process_subtitles(url, job_id):
                     if os.path.exists(p):
                         os.remove(p)
                 return content
+    except subprocess.TimeoutExpired:
+        logger.warning(f"Subtitle extraction timed out for {job_id}")
     except Exception as e:
         logger.warning(f"Subtitle extraction failed: {e}")
     return None
 
-def process_whisper(url, job_id):
+def process_whisper(url, job_id, job_metadata):
     """Priority 2: Download audio & Transcribe"""
     # we don't know the extension yet, so we look for any file starting with job_id
+    audio_path = None # Initialize early for safety
     try:
         # 1. Download Audio (Best Quality, No Re-encoding)
         logger.info(f"Downloading audio for {job_id}...")
-        subprocess.run([
+        
+        # Security: Use '--'
+        download_cmd = [
             "yt-dlp",
             "-f", "ba", # Best Audio
             "--output", f"/tmp/{job_id}.%(ext)s",
+            "--",
             url
-        ], check=True, capture_output=True)
+        ]
+        
+        # Timeout: 10 minutes max for download
+        subprocess.run(download_cmd, check=True, capture_output=True, timeout=600)
         
         # Find the downloaded file (m4a, webm, etc)
-        audio_path = None
         for file in os.listdir("/tmp"):
             if file.startswith(job_id) and file != job_id: # ignore directories
                 audio_path = os.path.join("/tmp", file)
                 break
         
         if not audio_path:
-            raise Exception("Audio download failed")
+            raise Exception("Audio download failed (file not found)")
+
+        # Security: Verify Duration matches constraints (Max 30m)
+        try:
+            probe_cmd = [
+                "ffprobe", "-v", "error", "-show_entries", 
+                "format=duration", "-of", "default=noprint_wrappers=1:nokey=1", 
+                audio_path
+            ]
+            probe_res = subprocess.run(probe_cmd, capture_output=True, text=True, check=True)
+            actual_duration = float(probe_res.stdout.strip())
+            
+            if actual_duration > 1800: # 30 mins hard limit
+                raise ValueError(f"Video exceeds 30m limit (Actual: {actual_duration:.2f}s)")
+                
+        except ValueError as ve:
+            raise ve
+        except Exception as e:
+            logger.warning(f"Could not verify duration: {e}")
+            raise ValueError("Could not verify media duration; rejecting for safety.")
 
         # 2. Transcribe
         logger.info(f"Transcribing {job_id} with Whisper...")
-        segments, info = model.transcribe(audio_path, beam_size=5)
+        segments_generator, info = model.transcribe(audio_path, beam_size=5)
         
-        transcript = []
-        for segment in segments:
-            transcript.append(f"[{segment.start:.2f}s -> {segment.end:.2f}s] {segment.text}")
+        # Iterate generator to get full list for our markdown generator
+        segments = list(segments_generator)
+        
+        # 3. Generate Markdown
+        markdown = generate_markdown(job_metadata, segments)
             
-        return "\n".join(transcript)
+        return markdown
         
     except Exception as e:
         logger.error(f"Whisper failed: {e}")
         raise e
     finally:
         # Cleanup
-        if os.path.exists(audio_path):
+        if audio_path and os.path.exists(audio_path):
             os.remove(audio_path)
 
 def worker_loop():
@@ -122,21 +156,31 @@ def worker_loop():
         update_job_status(job_id, "processing")
         
         try:
-            # Strategy 1: Subtitles
-            result = process_subtitles(url, job_id)
+            job_type = job.get("type", "full")
             
-            # Strategy 2: Whisper
-            if not result:
-                logger.info("No subtitles found. Falling back to Whisper.")
-                if model:
-                    result = process_whisper(url, job_id)
-                else:
-                    raise Exception("Whisper model not available")
-            
-            if result:
+            if job_type == "preview":
+                # Preview Mode
+                duration = job.get("duration", 0)
+                if not model:
+                     raise Exception("Whisper model not available")
+                result = generate_preview(url, duration, model)
                 update_job_status(job_id, "completed", result=result)
             else:
-                update_job_status(job_id, "failed", error="Could not extract transcript")
+                # Full Transcription Mode
+                # Strategy 1: Subtitles
+                result = process_subtitles(url, job_id)
+                
+                # Strategy 2: Whisper
+                if not result:
+                    logger.info("No subtitles found. Falling back to Whisper.")
+                    if model:
+                        result = process_whisper(url, job_id, job)
+                    else:
+                        raise Exception("Whisper model not available")                
+                if result:
+                    update_job_status(job_id, "completed", result=result)
+                else:
+                    update_job_status(job_id, "failed", error="Could not extract transcript")
                 
         except Exception as e:
             logger.error(f"Job {job_id} failed: {e}")

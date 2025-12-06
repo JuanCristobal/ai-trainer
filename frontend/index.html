@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    
+    <title>Video2MD | Turn Videos into Markdown</title>
+    <meta name="description" content="Extract structured data from YouTube for LLMs.">
+    
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- 1. THE NAVBAR -->
+    <nav class="site-nav">
+        <a href="#" class="brand-text">Video2MD</a>
+        
+        <div class="nav-right">
+            <!-- History Trigger -->
+            <details id="history-container" class="brutalist-history" style="display: none;">
+                <summary>
+                    <!-- Clock Icon -->
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>History</span>
+                </summary>
+                <ul id="history-list">
+                    <!-- JS Injected -->
+                </ul>
+            </details>
+
+            <!-- Cart Trigger (Static for now, logic inside tool) -->
+            <div class="nav-item">
+                <!-- Shopping Bag Icon -->
+                <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                <span id="nav-cart-count">Cart</span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- 2. THE HERO (Text Only) -->
+    <header class="hero-text-section">
+        <h1>Make Videos Readable.</h1>
+        <p>Stop hallucinations. Turn YouTube videos into structured data for your LLM.</p>
+    </header>
+
+    <!-- 3. THE APPLICATION STAGE (Tool Window) -->
+    <main class="tool-stage">
+        
+        <!-- Input -->
+        <div style="margin-bottom: 3rem;">
+            <div class="flex-row">
+                <input type="text" id="url-input" class="input" placeholder="Paste YouTube URL..." autofocus>
+                <button id="add-btn" class="btn btn-primary" data-i18n="btn_add">Add</button>
+            </div>
+        </div>
+
+        <!-- Cart List -->
+        <div id="cart-list">
+            <p style="opacity: 0.6; text-align: center;" data-i18n="cart_empty">Your cart is currently empty.</p>
+        </div>
+
+        <!-- Totals & Actions -->
+        <div class="mt-4 text-right" style="border-top: 2px solid #000; padding-top: 2rem; margin-top: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <h3 data-i18n="total" style="margin:0;">Total</h3>
+                <p id="total-price" style="font-size: 2.5rem; font-weight: 900; margin:0;">$0.00</p>
+            </div>
+            
+            <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                <button id="checkout-btn" class="btn btn-primary" data-i18n="btn_checkout">Pay with Stripe</button>
+                <button id="dev-pay-btn" class="btn" style="background-color: #333; color: #fff;">⚡ Dev Pay</button>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        Built for the AI era. © 2025 Video2MD.
+    </footer>
+
+    <script src="app.js?v=3" defer></script>
+</body>
+</html>
