@@ -1,35 +1,13 @@
 {
   "$schema": "https://railway.app/railway.schema.json",
   "build": {
-    "nixpacksPlan": {
-      "phases": {
-        "setup": {
-          "nixPkgs": [
-            "ffmpeg"
-          ]
-        }
-      }
-    }
+    "builder": "DOCKERFILE",
+    "dockerfilePath": "gateway/Dockerfile",
+    "dockerContext": "."
   },
   "deploy": {
-    "services": {
-      "gateway": {
-        "rootDirectory": ".",
-        "dockerfilePath": "gateway/Dockerfile",
-        "healthcheckPath": "/api/health",
-        "restartPolicyType": "ON_FAILURE",
-        "network": {
-          "public": true
-        }
-      },
-      "worker": {
-        "rootDirectory": ".",
-        "dockerfilePath": "worker/Dockerfile",
-        "restartPolicyType": "ON_FAILURE",
-        "network": {
-          "public": false
-        }
-      }
-    }
+    "startCommand": "uvicorn main:app --host 0.0.0.0 --port $PORT",
+    "healthcheckPath": "/api/health",
+    "restartPolicyType": "ON_FAILURE"
   }
 }
