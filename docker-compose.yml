@@ -2,15 +2,17 @@ version: '3.8'
 
 services:
   gateway:
-    build: ./gateway
+    build:
+      context: .
+      dockerfile: gateway/Dockerfile
     ports:
       - "8000:8000"
     env_file: .env
-    volumes:
-      - ./gateway:/app
+    environment:
+      - DATABASE_URL=postgresql://user:password@db:5432/video2md
     depends_on:
       - redis
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+      - db
 
   worker:
     build: ./worker
@@ -19,7 +21,6 @@ services:
       - ./worker:/app
     depends_on:
       - redis
-    # restart: on-failure
 
   redis:
     image: redis:7-alpine
@@ -28,12 +29,17 @@ services:
     volumes:
       - redis_data:/data
 
-  frontend:
-    image: nginx:alpine
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: video2md
     ports:
-      - "3000:80"
+      - "5432:5432"
     volumes:
-      - ./frontend:/usr/share/nginx/html
+      - postgres_data:/var/lib/postgresql/data
 
 volumes:
   redis_data:
+  postgres_data:

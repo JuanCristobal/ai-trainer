@@ -3,30 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Downloads | Video To Text</title>
+    
+    <title>Downloads | Video2MD</title>
+    <meta name="description" content="Your extracted video data.">
+    
     <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <main class="container">
-        <!-- Header -->
-        <header class="text-center mb-4">
-            <h1 data-i18n="downloads_title">Your Downloads</h1>
-            <p data-i18n="downloads_subtitle">Processing your videos. This page updates automatically.</p>
-        </header>
 
-        <!-- Status List -->
-        <section class="card">
-            <div id="status-list">
-                <!-- Items injected by app.js -->
-                <p class="text-center" style="opacity: 0.6;" data-i18n="downloads_loading">Loading status...</p>
+    <!-- 1. THE NAVBAR (Shared) -->
+    <nav class="site-nav">
+        <a href="index.html" class="brand-text">Video2MD</a>
+        
+        <div class="nav-right">
+            <!-- History Trigger -->
+            <details id="history-container" class="brutalist-history" style="display: none;">
+                <summary>
+                    <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>History</span>
+                </summary>
+                <ul id="history-list">
+                    <!-- JS Injected -->
+                </ul>
+            </details>
+
+            <!-- Cart (Hidden/Inactive on downloads, or just static) -->
+            <div class="nav-item" style="opacity: 0.5; cursor: default;">
+                <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
+                <span>Cart</span>
             </div>
-        </section>
-
-        <!-- Actions -->
-        <div class="text-center mt-4">
-            <a href="index.html" class="btn" data-i18n="btn_new_order">Start New Order</a>
         </div>
+    </nav>
+
+    <!-- 2. THE HERO -->
+    <header class="hero-text-section">
+        <h1 data-i18n="downloads_title">Your Downloads</h1>
+        <p data-i18n="downloads_subtitle">Processing your videos. This page updates automatically.</p>
+    </header>
+
+    <!-- 3. THE APPLICATION STAGE -->
+    <main class="tool-stage">
+        
+        <!-- Status List -->
+        <div id="status-list">
+            <p class="text-center" style="opacity: 0.6;" data-i18n="downloads_loading">Loading status...</p>
+        </div>
+
+        <!-- Footer Action -->
+        <div class="text-center mt-4" style="border-top: 2px solid #000; padding-top: 2rem; margin-top: 2rem;">
+            <button onclick="resetSession()" class="btn" data-i18n="btn_new_order">Start New Order</button>
+        </div>
+
     </main>
+
+    <footer class="site-footer">
+        Built for the AI era. © 2025 Video2MD.
+    </footer>
 
     <script src="app.js"></script>
 </body>
