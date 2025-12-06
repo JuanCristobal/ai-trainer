@@ -15,11 +15,11 @@ logger = logging.getLogger("worker")
 redis_client = get_redis_client()
 
 # Initialize Whisper (Load once on startup)
-# Use "base" model as per requirements for CPU/Speed balance
-model_size = "base"
+# Use "tiny" model for lower memory footprint on starter tiers
+model_size = "tiny"
 try:
     logger.info(f"Loading Whisper model: {model_size}...")
-    model = WhisperModel(model_size, device="cpu", compute_type="int8")
+    model = WhisperModel(model_size, device="cpu", compute_type="int8", cpu_threads=4)
     logger.info("Whisper model loaded.")
 except Exception as e:
     logger.error(f"Failed to load Whisper model: {e}")
