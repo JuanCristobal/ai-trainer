@@ -32,7 +32,7 @@ jobs:
       - name: Build and Push Worker
         uses: docker/build-push-action@v5
         with:
-          context: .
+          context: ./worker
           file: worker/Dockerfile
           push: true
           tags: ghcr.io/${{ env.OWNER_LC }}/video2md-worker:latest
