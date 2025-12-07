@@ -21,26 +21,26 @@
                 <summary>
                     <!-- Clock Icon -->
                     <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span>History</span>
+                    <span data-i18n="nav_history">History</span>
                 </summary>
                 <ul id="history-list">
                     <!-- JS Injected -->
                 </ul>
             </details>
 
-            <!-- Cart Trigger (Static for now, logic inside tool) -->
+            <!-- Cart Trigger -->
             <div class="nav-item">
                 <!-- Shopping Bag Icon -->
                 <svg class="icon" viewBox="0 0 24 24"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"></path><line x1="3" y1="6" x2="21" y2="6"></line><path d="M16 10a4 4 0 0 1-8 0"></path></svg>
-                <span id="nav-cart-count">Cart</span>
+                <span id="nav-cart-count" data-i18n="nav_cart">Cart</span>
             </div>
         </div>
     </nav>
 
     <!-- 2. THE HERO (Text Only) -->
     <header class="hero-text-section">
-        <h1>Make Videos Readable.</h1>
-        <p>Stop hallucinations. Turn YouTube videos into structured data for your LLM.</p>
+        <h1 data-i18n="hero_title">Make Videos Readable.</h1>
+        <p data-i18n="hero_subtitle">Stop hallucinations. Turn YouTube videos into structured data for your LLM.</p>
     </header>
 
     <!-- 3. THE APPLICATION STAGE (Tool Window) -->
@@ -49,7 +49,7 @@
         <!-- Input -->
         <div style="margin-bottom: 3rem;">
             <div class="flex-row">
-                <input type="text" id="url-input" class="input" placeholder="Paste YouTube URL..." autofocus>
+                <input type="text" id="url-input" class="input" data-i18n-placeholder="placeholder_url" placeholder="Paste YouTube URL..." autofocus>
                 <button id="add-btn" class="btn btn-primary" data-i18n="btn_add">Add</button>
             </div>
         </div>
@@ -74,8 +74,31 @@
 
     </main>
 
+    <!-- VALUE PROPOSITION -->
+    <section class="why-section">
+        <div class="feature-card">
+            <span class="feature-icon">👁️‍🗨️</span>
+            <h3 data-i18n="feat_blackbox_title">The Black Box Problem</h3>
+            <p data-i18n="feat_blackbox_text">LLMs are blind to video. Sending a URL to ChatGPT often leads to hallucinations or generic summaries.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">⛏️</span>
+            <h3 data-i18n="feat_extraction_title">Deep Extraction</h3>
+            <p data-i18n="feat_extraction_text">We don't just scrape. We download audio, transcribe with <strong>Whisper</strong>, and format timestamps precisely.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-icon">🤖</span>
+            <h3 data-i18n="feat_rag_title">RAG Ready</h3>
+            <p data-i18n="feat_rag_text">Download a clean <code>.md</code> file. Drag & drop it into Claude or GPT-4 to chat with the video instantly.</p>
+        </div>
+    </section>
+
     <footer class="site-footer">
-        Built for the AI era. © 2025 Video2MD.
+        <p data-i18n="footer_text">Built for the AI era. © 2025 Video2MD.</p>
+        <div style="margin-top: 1rem; font-size: 0.8rem;">
+            <a href="privacy" data-i18n="link_privacy">Privacy</a> | 
+            <a href="terms" data-i18n="link_terms">Terms</a>
+        </div>
     </footer>
 
     <script src="app.js?v=3" defer></script>

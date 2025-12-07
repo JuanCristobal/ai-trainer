@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy | Video2MD</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+    <!-- NAVBAR -->
+    <nav class="site-nav">
+        <a href="index.html" class="brand-text">Video2MD</a>
+        <div class="nav-right">
+            <div class="nav-item" style="opacity:0.5;">
+                <svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <span data-i18n="nav_history">History</span>
+            </div>
+        </div>
+    </nav>
+
+    <main class="tool-stage" style="text-align: left; max-width: 800px;">
+        
+        <!-- ENGLISH CONTENT -->
+        <div class="lang-content lang-en">
+            <h1>Privacy Policy</h1>
+            <p><strong>Effective Date: December 2025</strong></p>
+            
+            <h3>1. Data Collection</h3>
+            <p>We collect only the video URLs you submit and your Session ID. We do not store personal data unless you pay (handled by Stripe/Paddle).</p>
+
+            <h3>2. Data Retention</h3>
+            <p>All extracted audio and generated Markdown files are stored in ephemeral cache (Redis) and <strong>automatically deleted after 1 hour</strong>.</p>
+
+            <h3>3. Third Parties</h3>
+            <p>We use OpenAI/Whisper models locally. No data is sent to external AI providers by us. Payments are processed by Stripe/Paddle.</p>
+
+            <h3>4. Contact</h3>
+            <p>Video2MD HQ, Santiago, Chile. Email: support@video2md.com</p>
+        </div>
+
+        <!-- SPANISH CONTENT -->
+        <div class="lang-content lang-es" style="display: none;">
+            <h1>Política de Privacidad</h1>
+            <p><strong>Fecha Efectiva: Diciembre 2025</strong></p>
+            
+            <h3>1. Recolección de Datos</h3>
+            <p>Solo recolectamos las URLs de video que envías y tu ID de sesión. No guardamos datos personales a menos que pagues (manejado por Stripe/Paddle).</p>
+
+            <h3>2. Retención de Datos</h3>
+            <p>Todo el audio extraído y los archivos Markdown se guardan en caché efímera (Redis) y <strong>se eliminan automáticamente después de 1 hora</strong>.</p>
+
+            <h3>3. Terceros</h3>
+            <p>Usamos modelos Whisper localmente. No enviamos datos a proveedores de IA externos. Los pagos son procesados por Stripe/Paddle.</p>
+
+            <h3>4. Contacto</h3>
+            <p>Video2MD HQ, Santiago, Chile. Email: support@video2md.com</p>
+        </div>
+
+    </main>
+
+    <footer class="site-footer">
+        <p data-i18n="footer_text">Built for the AI era. © 2025 Video2MD.</p>
+        <div style="margin-top: 1rem; font-size: 0.8rem;">
+            <a href="privacy" data-i18n="link_privacy">Privacy</a> | 
+            <a href="terms" data-i18n="link_terms">Terms</a>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+</html>

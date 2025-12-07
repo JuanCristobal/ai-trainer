@@ -8,67 +8,111 @@ const API_BASE = '/api';
 // --- Localization Configuration ---
 const TRANSLATIONS = {
     en: {
-        title: "Video To Text",
-        subtitle: "Extract transcripts & metadata from YouTube.",
+        // Navbar
+        nav_history: "History",
+        nav_cart: "Cart",
+        
+        // Hero
+        hero_title: "Make Videos Readable.",
+        hero_subtitle: "Stop hallucinations. Turn YouTube videos into structured data for your LLM.",
+        
+        // Tool
         placeholder_url: "Paste YouTube URL here...",
         btn_add: "Add",
         cart_title: "Your Cart",
         cart_empty: "Your cart is currently empty.",
-        fee_base: "Base Fee",
-        fee_duration: "Duration Fee",
         total: "Total",
         btn_checkout: "Pay with Stripe",
-        btn_preview: "Preview (30s)",
-        downloads_title: "Your Downloads",
-        downloads_subtitle: "Processing your videos. This page updates automatically.",
-        downloads_loading: "Loading status...",
         btn_new_order: "Start New Order",
-        alert_cart_full: "Cart full! Please checkout now (Max 10 videos).",
-        alert_error: "Error: ",
-        status_pending: "Pending",
-        status_processing: "Processing",
-        status_completed: "Completed",
-        status_failed: "Failed",
-        whimsical: [
-            'Discombobulating neural networks...',
-            'Teaching Python to listen...',
-            'Herding bits and bytes...',
-            'Heating up the GPU...',
-            'Downloading the internet...'
-        ]
-    },
-    es: {
-        title: "Video a Texto",
-        subtitle: "Extrae transcripciones y metadatos de YouTube.",
-        placeholder_url: "Pega la URL de YouTube aquí...",
-        btn_add: "Agregar",
-        cart_title: "Tu Carrito",
-        cart_empty: "Tu carrito está vacío actualmente.",
-        fee_base: "Tarifa Base",
-        fee_duration: "Tarifa por Duración",
-        total: "Total",
-        btn_checkout: "Pagar con Stripe",
-        btn_preview: "Vista Previa (30s)",
-        downloads_title: "Tus Descargas",
-        downloads_subtitle: "Procesando tus videos. Esta página se actualiza sola.",
-        downloads_loading: "Cargando estado...",
-        btn_new_order: "Nueva Orden",
-        alert_cart_full: "¡Carrito lleno! Por favor paga ahora (Máx 10 videos).",
-        alert_error: "Error: ",
-        status_pending: "Pendiente",
-        status_processing: "Procesando",
-        status_completed: "Completado",
-        status_failed: "Fallido",
-        whimsical: [
-            'Descombobulando redes neuronales...',
-            'Enseñándole a escuchar a Python...',
-            'Arreando bits y bytes...',
-            'Calentando la GPU...',
-            'Descargando internet...'
-        ]
-    }
-};
-
+        
+        // Features
+        feat_blackbox_title: "The Black Box Problem",
+        feat_blackbox_text: "LLMs are blind to video. Sending a URL to ChatGPT often leads to hallucinations or generic summaries.",
+        feat_extraction_title: "Deep Extraction",
+        feat_extraction_text: "We don't just scrape. We download audio, transcribe with Whisper, and format timestamps precisely.",
+        feat_rag_title: "RAG Ready",
+        feat_rag_text: "Download a clean .md file. Drag & drop it into Claude or GPT-4 to chat with the video instantly.",
+        
+                        // Footer
+                        footer_text: "Built for the AI era. © 2025 Video2MD.",
+                        link_terms: "Terms of Service",
+                        link_privacy: "Privacy Policy",
+                
+                        // Dynamic                btn_preview: "Preview (30s)",
+                btn_done: "Done",
+                btn_download: "Download",
+                btn_download_zip: "Download All (.zip)",
+                downloads_title: "Your Downloads",
+                downloads_subtitle: "Processing your videos. This page updates automatically.",
+                downloads_loading: "Loading status...",
+                alert_cart_full: "Cart full! Please checkout now (Max 10 videos).",
+                alert_error: "Error: ",
+                status_pending: "Pending",
+                status_processing: "Processing",
+                status_completed: "Completed",
+                status_failed: "Failed",
+                whimsical: [
+                    'Discombobulating neural networks...', 
+                    'Teaching Python to listen...', 
+                    'Herding bits and bytes...', 
+                    'Heating up the GPU...', 
+                    'Downloading the internet...'
+                ]
+            },
+            es: {
+                // Navbar
+                nav_history: "Historial",
+                nav_cart: "Carro",
+                
+                // Hero
+                hero_title: "Haz Videos Legibles.",
+                hero_subtitle: "Basta de alucinaciones. Convierte videos de YouTube en datos estructurados para tu LLM.",
+                
+                // Tool
+                placeholder_url: "Pega la URL de YouTube aquí...",
+                btn_add: "Agregar",
+                cart_title: "Tu Carro",
+                cart_empty: "Tu carro está vacío actualmente.",
+                total: "Total",
+                btn_checkout: "Pagar con Stripe",
+                btn_new_order: "Nueva Orden",
+                
+                // Features
+                feat_blackbox_title: "El Problema de la Caja Negra",
+                feat_blackbox_text: "Los LLMs son ciegos al video. Enviar una URL a ChatGPT a menudo resulta en alucinaciones o resúmenes genéricos.",
+                feat_extraction_title: "Extracción Profunda",
+                feat_extraction_text: "No solo hacemos scraping. Descargamos el audio, transcribimos con Whisper y formateamos las marcas de tiempo.",
+                feat_rag_title: "Listo para RAG",
+                feat_rag_text: "Descarga un archivo .md limpio. Arrástralo a Claude o GPT-4 para chatear con el video al instante.",
+                
+                        // Footer
+                        footer_text: "Desarrollado para la era IA. © 2025 Video2MD.",
+                        link_terms: "Términos de Servicio",
+                        link_privacy: "Política de Privacidad",
+                
+                        // Dynamic                btn_preview: "Vista Previa (30s)",
+                btn_done: "Listo",
+                btn_download: "Descargar",
+                btn_download_zip: "Descarga .zip",
+                downloads_title: "Tus Descargas",
+                downloads_subtitle: "Procesando tus videos. Esta página se actualiza sola.",
+                downloads_loading: "Cargando estado...",
+                btn_new_order: "Nueva Orden",
+                alert_cart_full: "¡Carro lleno! Por favor paga ahora (Máx 10 videos).",
+                alert_error: "Error: ",
+                status_pending: "Pendiente",
+                status_processing: "Procesando",
+                status_completed: "Completado",
+                status_failed: "Fallido",
+                whimsical: [
+                    'Descombobulando redes neuronales...', 
+                    'Enseñándole a escuchar a Python...', 
+                    'Arreando bits y bytes...', 
+                    'Calentando la GPU...', 
+                    'Descargando internet...'
+                ]
+            }
+        };
 // Environment & traps
 const IS_PROD = !location.hostname.match(/(?:localhost|127\.0\.0\.1)/);
 const ASCII_FINGER = `
@@ -158,6 +202,23 @@ function init() {
     
     // Start Whimsical Rotator globally
     setInterval(rotateWhimsicalText, 2500);
+    
+    // Toggle Language Blocks (Legal Pages)
+    toggleLanguageBlocks();
+}
+
+function toggleLanguageBlocks() {
+    const lang = state.lang; // 'en' or 'es'
+    const enBlocks = document.querySelectorAll('.lang-en');
+    const esBlocks = document.querySelectorAll('.lang-es');
+    
+    if (lang === 'es') {
+        enBlocks.forEach(el => el.style.display = 'none');
+        esBlocks.forEach(el => el.style.display = 'block');
+    } else {
+        enBlocks.forEach(el => el.style.display = 'block');
+        esBlocks.forEach(el => el.style.display = 'none');
+    }
 }
 
 // --- History Logic ---
@@ -464,7 +525,7 @@ function renderPreviewResult(text, container, btn, url) {
     `;
     
     // Update Button to "Done"
-    btn.textContent = "Done";
+    btn.textContent = t.btn_done;
     btn.disabled = false;
     btn.onclick = (e) => {
         e.stopPropagation();
@@ -485,7 +546,9 @@ function renderCart() {
     list.innerHTML = '';
     
     if (countSpan) {
-        countSpan.textContent = state.cart.length > 0 ? `Cart (${state.cart.length})` : 'Cart';
+        // FIX: Use localized string for Cart label
+        const cartLabel = t.nav_cart || "Cart";
+        countSpan.textContent = state.cart.length > 0 ? `${cartLabel} (${state.cart.length})` : cartLabel;
     }
 
     if (state.cart.length === 0) {
@@ -647,7 +710,7 @@ function renderJobs(jobs) {
         zipBtn.style.marginBottom = '1rem';
         zipBtn.innerHTML = `
             <a href="${API_BASE}/download-all/${state.sessionId}" class="btn" style="background-color: #333; color: white;">
-                Download All (.zip)
+                ${t.btn_download_zip}
             </a>
         `;
         list.appendChild(zipBtn);
@@ -663,7 +726,7 @@ function renderJobs(jobs) {
 
         if (job.status === 'completed') {
             // Use the generic /api/download/{job_id} endpoint
-            statusHtml = `<a href="${API_BASE}/download/${job.job_id}" class="btn btn-primary" target="_blank">Download</a>`;
+            statusHtml = `<a href="${API_BASE}/download/${job.job_id}" class="btn btn-primary" target="_blank">${t.btn_download}</a>`;
         } else if (job.status === 'failed') {
             statusHtml = `<span style="color: red;">Failed</span>`;
         } else {
