@@ -8,111 +8,92 @@ const API_BASE = '/api';
 // --- Localization Configuration ---
 const TRANSLATIONS = {
     en: {
-        // Navbar
         nav_history: "History",
         nav_cart: "Cart",
-        
-        // Hero
         hero_title: "Make Videos Readable.",
         hero_subtitle: "Stop hallucinations. Turn YouTube videos into structured data for your LLM.",
-        
-        // Tool
         placeholder_url: "Paste YouTube URL here...",
         btn_add: "Add",
         cart_title: "Your Cart",
         cart_empty: "Your cart is currently empty.",
         total: "Total",
-        btn_checkout: "Pay with Stripe",
+        btn_checkout: "Pay Securely",
         btn_new_order: "Start New Order",
-        
-        // Features
         feat_blackbox_title: "The Black Box Problem",
         feat_blackbox_text: "LLMs are blind to video. Sending a URL to ChatGPT often leads to hallucinations or generic summaries.",
         feat_extraction_title: "Deep Extraction",
         feat_extraction_text: "We don't just scrape. We download audio, transcribe with Whisper, and format timestamps precisely.",
         feat_rag_title: "RAG Ready",
         feat_rag_text: "Download a clean .md file. Drag & drop it into Claude or GPT-4 to chat with the video instantly.",
-        
-                        // Footer
-                        footer_text: "Built for the AI era. © 2025 Video2MD.",
-                        link_terms: "Terms of Service",
-                        link_privacy: "Privacy Policy",
-                
-                        // Dynamic                btn_preview: "Preview (30s)",
-                btn_done: "Done",
-                btn_download: "Download",
-                btn_download_zip: "Download All (.zip)",
-                downloads_title: "Your Downloads",
-                downloads_subtitle: "Processing your videos. This page updates automatically.",
-                downloads_loading: "Loading status...",
-                alert_cart_full: "Cart full! Please checkout now (Max 10 videos).",
-                alert_error: "Error: ",
-                status_pending: "Pending",
-                status_processing: "Processing",
-                status_completed: "Completed",
-                status_failed: "Failed",
-                whimsical: [
-                    'Discombobulating neural networks...', 
-                    'Teaching Python to listen...', 
-                    'Herding bits and bytes...', 
-                    'Heating up the GPU...', 
-                    'Downloading the internet...'
-                ]
-            },
-            es: {
-                // Navbar
-                nav_history: "Historial",
-                nav_cart: "Carro",
-                
-                // Hero
-                hero_title: "Haz Videos Legibles.",
-                hero_subtitle: "Basta de alucinaciones. Convierte videos de YouTube en datos estructurados para tu LLM.",
-                
-                // Tool
-                placeholder_url: "Pega la URL de YouTube aquí...",
-                btn_add: "Agregar",
-                cart_title: "Tu Carro",
-                cart_empty: "Tu carro está vacío actualmente.",
-                total: "Total",
-                btn_checkout: "Pagar con Stripe",
-                btn_new_order: "Nueva Orden",
-                
-                // Features
-                feat_blackbox_title: "El Problema de la Caja Negra",
-                feat_blackbox_text: "Los LLMs son ciegos al video. Enviar una URL a ChatGPT a menudo resulta en alucinaciones o resúmenes genéricos.",
-                feat_extraction_title: "Extracción Profunda",
-                feat_extraction_text: "No solo hacemos scraping. Descargamos el audio, transcribimos con Whisper y formateamos las marcas de tiempo.",
-                feat_rag_title: "Listo para RAG",
-                feat_rag_text: "Descarga un archivo .md limpio. Arrástralo a Claude o GPT-4 para chatear con el video al instante.",
-                
-                        // Footer
-                        footer_text: "Desarrollado para la era IA. © 2025 Video2MD.",
-                        link_terms: "Términos de Servicio",
-                        link_privacy: "Política de Privacidad",
-                
-                        // Dynamic                btn_preview: "Vista Previa (30s)",
-                btn_done: "Listo",
-                btn_download: "Descargar",
-                btn_download_zip: "Descarga .zip",
-                downloads_title: "Tus Descargas",
-                downloads_subtitle: "Procesando tus videos. Esta página se actualiza sola.",
-                downloads_loading: "Cargando estado...",
-                btn_new_order: "Nueva Orden",
-                alert_cart_full: "¡Carro lleno! Por favor paga ahora (Máx 10 videos).",
-                alert_error: "Error: ",
-                status_pending: "Pendiente",
-                status_processing: "Procesando",
-                status_completed: "Completado",
-                status_failed: "Fallido",
-                whimsical: [
-                    'Descombobulando redes neuronales...', 
-                    'Enseñándole a escuchar a Python...', 
-                    'Arreando bits y bytes...', 
-                    'Calentando la GPU...', 
-                    'Descargando internet...'
-                ]
-            }
-        };
+        footer_text: "Built for the AI era. © 2025 Video2MD.",
+        link_terms: "Terms of Service",
+        link_privacy: "Privacy Policy",
+        btn_preview: "Preview (30s)",
+        btn_done: "Done",
+        btn_download: "Download",
+        btn_download_zip: "Download All (.zip)",
+        downloads_title: "Your Downloads",
+        downloads_subtitle: "Processing your videos. This page updates automatically.",
+        downloads_loading: "Loading status...",
+        alert_cart_full: "Cart full! Please checkout now (Max 10 videos).",
+        alert_error: "Error: ",
+        status_pending: "Pending",
+        status_processing: "Processing",
+        status_completed: "Completed",
+        status_failed: "Failed",
+        whimsical: [
+            'Discombobulating neural networks...', 
+            'Teaching Python to listen...', 
+            'Herding bits and bytes...', 
+            'Heating up the GPU...', 
+            'Downloading the internet...'
+        ]
+    },
+    es: {
+        nav_history: "Historial",
+        nav_cart: "Carro",
+        hero_title: "Haz Videos Legibles.",
+        hero_subtitle: "Basta de alucinaciones. Convierte videos de YouTube en datos estructurados para tu LLM.",
+        placeholder_url: "Pega la URL de YouTube aquí...",
+        btn_add: "Agregar",
+        cart_title: "Tu Carro",
+        cart_empty: "Tu carro está vacío actualmente.",
+        total: "Total",
+        btn_checkout: "Pagar Seguro",
+        btn_new_order: "Nueva Orden",
+        feat_blackbox_title: "El Problema de la Caja Negra",
+        feat_blackbox_text: "Los LLMs son ciegos al video. Enviar una URL a ChatGPT a menudo resulta en alucinaciones o resúmenes genéricos.",
+        feat_extraction_title: "Extracción Profunda",
+        feat_extraction_text: "No solo hacemos scraping. Descargamos el audio, transcribimos con Whisper y formateamos las marcas de tiempo.",
+        feat_rag_title: "Listo para RAG",
+        feat_rag_text: "Descarga un archivo .md limpio. Arrástralo a Claude o GPT-4 para chatear con el video al instante.",
+        footer_text: "Desarrollado para la era IA. © 2025 Video2MD.",
+        link_terms: "Términos de Servicio",
+        link_privacy: "Política de Privacidad",
+        btn_preview: "Vista Previa",
+        btn_done: "Listo",
+        btn_download: "Descargar",
+        btn_download_zip: "Descarga .zip",
+        downloads_title: "Tus Descargas",
+        downloads_subtitle: "Procesando tus videos. Esta página se actualiza sola.",
+        downloads_loading: "Cargando estado...",
+        btn_new_order: "Nueva Orden",
+        alert_cart_full: "¡Carro lleno! Por favor paga ahora (Máx 10 videos).",
+        alert_error: "Error: ",
+        status_pending: "Pendiente",
+        status_processing: "Procesando",
+        status_completed: "Completado",
+        status_failed: "Fallido",
+        whimsical: [
+            'Descombobulando redes neuronales...', 
+            'Enseñándole a escuchar a Python...', 
+            'Arreando bits y bytes...', 
+            'Calentando la GPU...', 
+            'Descargando internet...'
+        ]
+    }
+};
+
 // Environment & traps
 const IS_PROD = !location.hostname.match(/(?:localhost|127\.0\.0\.1)/);
 const ASCII_FINGER = `
@@ -155,13 +136,57 @@ const state = {
     previews: {} // Stores job_id -> { status, result }
 };
 
-const GEAR_ICON = `<svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
+const GEAR_ICON = `<svg class="status-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>`;
 const TRASH_ICON = `<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>`;
+const LOCK_ICON = `<svg class="icon" style="margin-right: 0.5rem;" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>`;
+
+// --- Paddle Init ---
+let PADDLE_CLIENT_TOKEN = "";
+let paddleInitialized = false;
 
 // --- Core Functions ---
 
 function init() {
     console.log("App init started");
+
+    // 1. Immediate UI Init (Listeners)
+    if (document.getElementById('cart-list')) {
+        console.log("Detected Cart Page");
+        initCartPage();
+    } else if (document.getElementById('status-list')) {
+        console.log("Detected Downloads Page");
+        initDownloadsPage();
+    }
+
+    // 2. Load History
+    loadHistory();
+    
+    // 3. Load Config (Non-blocking Promise)
+    fetch(`${API_BASE}/config`)
+        .then(res => res.json())
+        .then(config => {
+            console.log("Config loaded:", config);
+            PADDLE_CLIENT_TOKEN = config.paddle_client_token;
+            
+            // Fix: Paddle rejects 'development', force 'sandbox'
+            const safeEnv = (config.env === 'development') ? 'sandbox' : config.env;
+            
+            if (PADDLE_CLIENT_TOKEN && typeof Paddle !== 'undefined') {
+                Paddle.Initialize({ 
+                    token: PADDLE_CLIENT_TOKEN,
+                    environment: safeEnv, 
+                    eventCallback: function(data) {
+                        if (data.name === "checkout.completed") {
+                            window.location.href = "downloads.html";
+                        }
+                    }
+                });
+                paddleInitialized = true;
+                console.log("Paddle Initialized");
+            }
+        })
+        .catch(e => console.error("Config load failed:", e));
+
     // Detect Language
     const userLang = navigator.language || navigator.userLanguage;
     if (userLang.startsWith('es')) {
@@ -172,7 +197,13 @@ function init() {
     const t = TRANSLATIONS[state.lang];
     document.querySelectorAll('[data-i18n]').forEach(el => {
         const key = el.getAttribute('data-i18n');
-        if (t[key]) el.textContent = t[key];
+        if (t[key]) {
+            if (key === 'btn_checkout') {
+                el.innerHTML = `${LOCK_ICON}${t[key]}`;
+            } else {
+                el.textContent = t[key];
+            }
+        }
     });
     document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
         const key = el.getAttribute('data-i18n-placeholder');
@@ -188,18 +219,6 @@ function init() {
     state.sessionId = storedSession;
     console.log("Session ID:", state.sessionId);
 
-    // Load History
-    loadHistory();
-
-    // Route Handler
-    if (document.getElementById('cart-list')) {
-        console.log("Detected Cart Page");
-        initCartPage();
-    } else if (document.getElementById('status-list')) {
-        console.log("Detected Downloads Page");
-        initDownloadsPage();
-    }
-    
     // Start Whimsical Rotator globally
     setInterval(rotateWhimsicalText, 2500);
     
@@ -208,7 +227,7 @@ function init() {
 }
 
 function toggleLanguageBlocks() {
-    const lang = state.lang; // 'en' or 'es'
+    const lang = state.lang; 
     const enBlocks = document.querySelectorAll('.lang-en');
     const esBlocks = document.querySelectorAll('.lang-es');
     
@@ -240,7 +259,7 @@ function loadHistory() {
     // Save cleaned list
     localStorage.setItem('recentSessions', JSON.stringify(validSessions));
     
-    // Remove current session from view if present in history (unlikely but possible)
+    // Remove current session from view if present in history
     const visibleSessions = validSessions.filter(s => s.id !== state.sessionId);
 
     if (visibleSessions.length === 0) {
@@ -249,7 +268,7 @@ function loadHistory() {
     }
 
     // Render
-    container.style.display = 'block'; // Show container
+    container.style.display = 'block'; 
     list.innerHTML = '';
     
     visibleSessions.forEach(s => {
@@ -257,7 +276,6 @@ function loadHistory() {
         const minsLeft = 60 - elapsedMins;
         
         const li = document.createElement('li');
-        // CSS class handles styling now
         li.innerHTML = `
             <div onclick="restoreSession('${s.id}')" style="flex-grow:1;">
                 <span>Order ...${s.id.slice(-4)}</span>
@@ -265,7 +283,6 @@ function loadHistory() {
             </div>
             <button onclick="deleteHistoryItem('${s.id}')" style="background:none; border:none; cursor:pointer; color:red; font-weight:bold; padding:0 0.5rem;">&times;</button>
         `;
-        
         list.appendChild(li);
     });
 }
@@ -275,43 +292,32 @@ function deleteHistoryItem(id) {
     let sessions = raw ? JSON.parse(raw) : [];
     const newSessions = sessions.filter(s => s.id !== id);
     localStorage.setItem('recentSessions', JSON.stringify(newSessions));
-    loadHistory(); // Re-render
+    loadHistory(); 
 }
 
 function restoreSession(oldId) {
     if (confirm("Switch to this previous order? Current cart will be saved.")) {
-        // Save current if needed (handled by resetSession usually, but here we switch manually)
-        // We reuse resetSession logic but point to oldId
-        
-        // Manually switch
         resetSession(oldId, true); 
     }
 }
 
 function resetSession(targetId = null, isRestore = false) {
-    // 1. Save current session to history ONLY if it has actual orders
     if (state.sessionId) {
         const hasOrders = localStorage.getItem(`vtt_has_orders_${state.sessionId}`);
-        
         if (hasOrders === 'true') {
             let raw = localStorage.getItem('recentSessions');
             let sessions = raw ? JSON.parse(raw) : [];
-            
-            // Add current only if not already there
             if (!sessions.find(s => s.id === state.sessionId)) {
                 sessions.push({ id: state.sessionId, timestamp: Date.now() });
                 localStorage.setItem('recentSessions', JSON.stringify(sessions));
             }
         }
-        // Cleanup flag
         localStorage.removeItem(`vtt_has_orders_${state.sessionId}`);
     }
 
-    // 2. Switch ID
     const newId = targetId || crypto.randomUUID();
     localStorage.setItem('vtt_session_id', newId);
     
-    // 3. Redirect
     if (isRestore) {
         window.location.href = "downloads.html";
     } else {
@@ -332,15 +338,17 @@ async function initCartPage() {
             console.log("Add Button Clicked");
             addToCart(input.value);
         });
-    } else {
-        console.error("Add Button not found!");
     }
     
-    input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') addToCart(input.value);
-    });
+    if(input) {
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') addToCart(input.value);
+        });
+    }
 
-    checkoutBtn.addEventListener('click', handleCheckout);
+    if(checkoutBtn) {
+        checkoutBtn.addEventListener('click', handleCheckout);
+    }
 
     // Dev Pay Handler
     const devBtn = document.getElementById('dev-pay-btn');
@@ -348,7 +356,7 @@ async function initCartPage() {
         if (IS_PROD) {
             devBtn.style.display = 'none';
             devBtn.onclick = devPayTrap;
-            window.devPay = devPayTrap; // honeypot for console explorers
+            window.devPay = devPayTrap; 
         } else {
             devBtn.addEventListener('click', async () => {
                 if (state.cart.length === 0) return;
@@ -364,8 +372,6 @@ async function initCartPage() {
                     });
                     
                     if (!res.ok) throw new Error("Dev pay failed");
-                    
-                    // Success: Redirect to downloads
                     window.location.href = "downloads.html";
                 } catch (e) {
                     alert("Dev Error: " + e.message);
@@ -376,7 +382,6 @@ async function initCartPage() {
         }
     }
 
-    // Initial Fetch
     await fetchCart();
 }
 
@@ -396,10 +401,7 @@ async function addToCart(url) {
     const t = TRANSLATIONS[state.lang];
     const input = document.getElementById('url-input');
 
-    if (!url) {
-        console.warn("No URL provided");
-        return;
-    }
+    if (!url) return;
     if (state.cart.length >= 10) {
         alert(t.alert_cart_full);
         return;
@@ -411,7 +413,6 @@ async function addToCart(url) {
     addBtn.textContent = "...";
 
     try {
-        console.log("Fetching API...");
         const response = await fetch(`${API_BASE}/cart/add`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -424,8 +425,6 @@ async function addToCart(url) {
         if (!response.ok) throw new Error('Failed to add video');
 
         const data = await response.json();
-        console.log("Added item:", data);
-        // Refresh cart from server to be safe
         await fetchCart(); 
         
         input.value = '';
@@ -439,24 +438,36 @@ async function addToCart(url) {
     }
 }
 
+async function removeFromCart(itemId) {
+    const t = TRANSLATIONS[state.lang];
+    try {
+        // Use DELETE endpoint (consistent with backend)
+        const res = await fetch(`${API_BASE}/cart/${itemId}?session_id=${state.sessionId}`, {
+            method: 'DELETE'
+        });
+        
+        if (!res.ok) throw new Error("Failed to delete");
+        
+        await fetchCart(); 
+    } catch (e) {
+        alert(t.alert_error + e.message);
+    }
+}
+
 async function requestPreview(url, btnElement, resultContainerId) {
     const t = TRANSLATIONS[state.lang];
     const resultDiv = document.getElementById(resultContainerId);
 
-    // 1. Check Cache
     if (state.previews[url]) {
         const cachedResult = state.previews[url];
         renderPreviewResult(cachedResult, resultDiv, btnElement, url);
         return;
     }
     
-    // 2. API Request
-    // Disable button
     btnElement.disabled = true;
     btnElement.textContent = "...";
 
     try {
-        // Request Job
         const res = await fetch(`${API_BASE}/preview`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -471,7 +482,6 @@ async function requestPreview(url, btnElement, resultContainerId) {
         const data = await res.json();
         const jobId = data.job_id;
         
-        // Start Polling
         resultDiv.style.display = 'block';
         resultDiv.innerHTML = `
             <div style="color: var(--accent-pink); font-weight:bold;">
@@ -500,7 +510,6 @@ function pollPreviewJob(jobId, container, btn, url) {
             
             if (job.status === 'completed') {
                 clearInterval(interval);
-                // Save to Cache
                 state.previews[url] = job.result;
                 renderPreviewResult(job.result, container, btn, url);
                 
@@ -524,21 +533,18 @@ function renderPreviewResult(text, container, btn, url) {
         <textarea readonly class="input" style="margin-top:1rem; height:300px; resize: vertical; background-color: #fff;">${text}</textarea>
     `;
     
-    // Update Button to "Done"
     btn.textContent = t.btn_done;
     btn.disabled = false;
     btn.onclick = (e) => {
         e.stopPropagation();
-        container.style.display = 'none'; // Just hide
-        btn.textContent = t.btn_preview;  // Reset text
-        // Reset click handler to trigger cache check next time
+        container.style.display = 'none';
+        btn.textContent = t.btn_preview;
         btn.onclick = (ev) => window.handlePreviewClick(ev, btn, url, container.id);
     };
 }
 
 function renderCart() {
     const list = document.getElementById('cart-list');
-    // Updated ID to match the new Navbar structure
     const countSpan = document.getElementById('nav-cart-count');
     const totalEl = document.getElementById('total-price');
     const t = TRANSLATIONS[state.lang];
@@ -546,7 +552,6 @@ function renderCart() {
     list.innerHTML = '';
     
     if (countSpan) {
-        // FIX: Use localized string for Cart label
         const cartLabel = t.nav_cart || "Cart";
         countSpan.textContent = state.cart.length > 0 ? `${cartLabel} (${state.cart.length})` : cartLabel;
     }
@@ -561,7 +566,7 @@ function renderCart() {
 
     state.cart.forEach((item, index) => {
         const el = document.createElement('div');
-        el.className = 'card mb-4'; // Removed modal click handler
+        el.className = 'card mb-4'; 
         el.style.padding = '1rem';
         
         const resultId = `preview-result-${index}`;
@@ -587,7 +592,6 @@ function renderCart() {
                 </div>
             </div>
             
-            <!-- Inline Result Area -->
             <div id="${resultId}" style="display:none; margin-top: 1rem; border-top: 2px solid #000; padding-top: 1rem;"></div>
         `;
         list.appendChild(el);
@@ -597,42 +601,14 @@ function renderCart() {
     totalEl.textContent = `$${total.toFixed(2)}`;
 }
 
-async function removeFromCart(itemId) {
-    const t = TRANSLATIONS[state.lang];
-    // Optional: Confirm dialog
-    // if (!confirm("Remove this video?")) return;
-
-    try {
-        const res = await fetch(`${API_BASE}/cart/${itemId}?session_id=${state.sessionId}`, {
-            method: 'DELETE'
-        });
-        
-        if (!res.ok) throw new Error("Failed to delete");
-        
-        await fetchCart(); // Refresh list
-    } catch (e) {
-        alert(t.alert_error + e.message);
-    }
-}
-
-// Global handler
-window.handlePreviewClick = function(event, btn, url, resultId) {
-    // If button text is "Done", we should probably just collapse? 
-    // But the onclick replacement in pollPreviewJob handles that.
-    // This entry point is for "Start Preview".
-    requestPreview(url, btn, resultId);
-};
-window.removeFromCart = removeFromCart;
-window.resetSession = resetSession;
-window.restoreSession = restoreSession;
-window.deleteHistoryItem = deleteHistoryItem;
-
-/* Removed Modal Functions (openCardModal, closeModal) */
-
-
 async function handleCheckout() {
     const t = TRANSLATIONS[state.lang];
     if (state.cart.length === 0) return;
+
+    if (!paddleInitialized) {
+        alert("Paddle is not ready. Please reload the page.");
+        return;
+    }
 
     const checkoutBtn = document.getElementById('checkout-btn');
     checkoutBtn.disabled = true;
@@ -646,10 +622,16 @@ async function handleCheckout() {
         });
         
         const data = await response.json();
-        if (data.url) {
-            window.location.href = data.url;
+        console.log("Checkout Response:", data);
+        
+        if (data.transactionId) {
+            Paddle.Checkout.open({
+                transactionId: data.transactionId
+            });
+            checkoutBtn.disabled = false;
+            checkoutBtn.textContent = t.btn_checkout;
         } else {
-            throw new Error('No checkout URL returned');
+            throw new Error('No transaction ID returned');
         }
     } catch (err) {
         alert(t.alert_error + err.message);
@@ -680,7 +662,6 @@ function renderJobs(jobs) {
     const t = TRANSLATIONS[state.lang];
     
     if (!jobs || jobs.length === 0) {
-        // ... existing auto-cleanup logic ...
         let raw = localStorage.getItem('recentSessions');
         let sessions = raw ? JSON.parse(raw) : [];
         const isHistory = sessions.find(s => s.id === state.sessionId);
@@ -697,12 +678,10 @@ function renderJobs(jobs) {
         return;
     }
 
-    // Mark session as having valid orders so it can be saved to history
     localStorage.setItem(`vtt_has_orders_${state.sessionId}`, 'true');
 
     list.innerHTML = ''; 
 
-    // Check completed count
     const completedCount = jobs.filter(j => j.status === 'completed').length;
     if (completedCount > 1) {
         const zipBtn = document.createElement('div');
@@ -715,7 +694,6 @@ function renderJobs(jobs) {
         `;
         list.appendChild(zipBtn);
     }
-    // Removed duplicate New Order button injection
 
     jobs.forEach(job => {
         const card = document.createElement('div');
@@ -725,7 +703,6 @@ function renderJobs(jobs) {
         let statusHtml = '';
 
         if (job.status === 'completed') {
-            // Use the generic /api/download/{job_id} endpoint
             statusHtml = `<a href="${API_BASE}/download/${job.job_id}" class="btn btn-primary" target="_blank">${t.btn_download}</a>`;
         } else if (job.status === 'failed') {
             statusHtml = `<span style="color: red;">Failed</span>`;
@@ -753,7 +730,6 @@ function renderJobs(jobs) {
 
 function rotateWhimsicalText() {
     const t = TRANSLATIONS[state.lang];
-    // Target the new class used inside the span next to the icon
     const elements = document.querySelectorAll('.whimsical-target');
     
     if (elements.length === 0) return;
@@ -765,5 +741,14 @@ function rotateWhimsicalText() {
         el.textContent = text;
     });
 }
+
+// --- Expose Globals ---
+window.handlePreviewClick = function(event, btn, url, resultId) {
+    requestPreview(url, btn, resultId);
+};
+window.removeFromCart = removeFromCart;
+window.resetSession = resetSession;
+window.restoreSession = restoreSession;
+window.deleteHistoryItem = deleteHistoryItem;
 
 document.addEventListener('DOMContentLoaded', init);

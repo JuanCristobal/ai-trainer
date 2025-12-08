@@ -16,7 +16,7 @@ import asyncpg
 from utils.redis_client import get_redis_client
 
 # Paddle
-from paddle_python_sdk import Client, Environment
+from paddle_billing import Client, Environment, Options
 from pricing import get_price_id_for_duration
 
 print("Gateway Starting...")
@@ -28,9 +28,11 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 
 # Initialize Paddle Client
 # Sandbox for Dev, Production for Prod. Toggle via env var if needed.
-# Assuming Sandbox for now as per "Dev" context usually.
-PADDLE_ENV = Environment.SANDBOX if os.getenv("ENV") == "development" else Environment.PRODUCTION
-paddle_client = Client(os.getenv("PADDLE_API_KEY"), environment=PADDLE_ENV)
+env_mode = Environment.SANDBOX if os.getenv("ENV") == "development" else Environment.PRODUCTION
+paddle_client = Client(
+    api_key=os.getenv("PADDLE_API_KEY"), 
+    options=Options(environment=env_mode)
+)
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -195,6 +197,17 @@ api = APIRouter(prefix="/api")
 def health_check():
     return {"status": "ok", "service": "gateway"}
 
+@api.get("/config")
+def get_config():
+    env_var = os.getenv("ENV", "development")
+    # Map 'development' to 'sandbox' for Paddle.js
+    paddle_env = "sandbox" if env_var == "development" else "production"
+    
+    return {
+        "env": paddle_env,
+        "paddle_client_token": os.getenv("PADDLE_CLIENT_TOKEN", "")
+    }
+
 @api.post("/cart/add")
 def add_to_cart(req: AddToCartRequest):
     # Validate session_id
@@ -314,41 +327,11 @@ def create_checkout_session(req: CheckoutRequest):
     logger.info(f"Checkout Session {req.session_id}: Duration {total_seconds}s -> Price {price_id}")
 
     try:
-        # Create Paddle Transaction
-        transaction = paddle_client.transactions.create(
-            items=[{"price_id": price_id, "quantity": 1}],
-            custom_data={"session_id": req.session_id}
-        )
-        
-        # Return the hosted checkout URL
-        # Note: Paddle API returns a transaction object. We need the 'url' property from details or similar.
-        # Checking SDK docs: usually transaction.details.checkout.url or similar.
-        # For simple integration, we redirect to the checkout page if generated.
-        # Wait, for server-side init, we usually get a transaction_id and use Paddle.js on frontend?
-        # OR we can get a hosted url if enabled.
-        # Assuming we want to redirect user:
-        # If using paddle-python-sdk 1.x, checking object structure...
-        
-        # Actually, for standard checkout we might just return the price_id if using Paddle.js Overlay?
-        # Prompt said: "Initialize the transaction... Return the url".
-        # Paddle Checkout URL is not always auto-generated server-side unless requested?
-        # Let's try to get the checkout URL from the response if available, or construct it.
-        # Simpler MVP: Pass transaction.id to frontend and let Paddle.js handle it?
-        # No, prompt implied backend init.
-        
-        # Workaround if SDK doesn't return URL directly: 
-        # We will return the transaction ID and the frontend might need to use Paddle.Checkout.open({transactionId: ...})
-        # BUT to keep frontend changes minimal (redirect), let's assume we can construct it or get it.
-        
-        # Actually, pure server-side URL generation is cleaner.
-        # Let's assume we return `transaction.url` if it exists, otherwise we return the ID.
-        
-        # Correction: Paddle Billing (New) uses Paddle.js mainly.
-        # But let's try to find the url in the response dictionary.
-        
-        # Simplified: Return the transaction object ID to frontend to open overlay?
-        # Or assume we are using the older Classic API? "paddle-python-sdk" implies the new Billing API.
-        # New API encourages Client-side checkout opening.
+        # Create Paddle Transaction (Pass dict)
+        transaction = paddle_client.transactions.create({
+            "items": [{"price_id": price_id, "quantity": 1}],
+            "custom_data": {"session_id": req.session_id}
+        })
         
         return {"url": None, "transactionId": transaction.id, "priceId": price_id}
         
