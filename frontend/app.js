@@ -168,13 +168,14 @@ function init() {
             console.log("Config loaded:", config);
             PADDLE_CLIENT_TOKEN = config.paddle_client_token;
             
-            // Fix: Paddle rejects 'development', force 'sandbox'
-            const safeEnv = (config.env === 'development') ? 'sandbox' : config.env;
+            // Fix: Set Environment globally before Initialize
+            if (config.env === 'sandbox') {
+                Paddle.Environment.set('sandbox');
+            }
             
             if (PADDLE_CLIENT_TOKEN && typeof Paddle !== 'undefined') {
                 Paddle.Initialize({ 
                     token: PADDLE_CLIENT_TOKEN,
-                    environment: safeEnv, 
                     eventCallback: function(data) {
                         if (data.name === "checkout.completed") {
                             window.location.href = "downloads.html";
@@ -623,10 +624,18 @@ async function handleCheckout() {
         
         const data = await response.json();
         console.log("Checkout Response:", data);
+        console.log("Using Client Token:", PADDLE_CLIENT_TOKEN);
         
         if (data.transactionId) {
+            console.log("Opening Paddle with Transaction ID:", data.transactionId);
+            
             Paddle.Checkout.open({
-                transactionId: data.transactionId
+                transactionId: data.transactionId,
+                settings: {
+                    displayMode: "overlay",
+                    theme: "light",
+                    locale: state.lang // 'es' or 'en'
+                }
             });
             checkoutBtn.disabled = false;
             checkoutBtn.textContent = t.btn_checkout;
